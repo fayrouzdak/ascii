@@ -1,0 +1,153 @@
+---
+---
+
+<div class="relative flex-1 w-full overflow-hidden bg-black" id="canvas-container">
+  <canvas id="ascii-canvas" class="block w-full h-full"></canvas>
+  <!-- Upload zone is layered on top, hidden after image load -->
+  <slot />
+</div>
+
+<script>
+  import { convertImageToAscii } from '../lib/ascii-converter';
+  import { AsciiRenderer } from '../lib/renderer';
+  import type { EffectType } from '../lib/types';
+
+  // ── DOM elements ──────────────────────────────────────────────────────────
+  const container = document.getElementById('canvas-container') as HTMLDivElement;
+  const canvas = document.getElementById('ascii-canvas') as HTMLCanvasElement;
+  const uploadZone = document.getElementById('upload-zone') as HTMLDivElement;
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const controls = document.getElementById('controls') as HTMLDivElement;
+  const effectSelect = document.getElementById('effect-select') as HTMLSelectElement;
+  const replayBtn = document.getElementById('replay-btn') as HTMLButtonElement;
+  const densitySlider = document.getElementById('density-slider') as HTMLInputElement;
+  const densityValue = document.getElementById('density-value') as HTMLSpanElement;
+  const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
+  const newImageBtn = document.getElementById('new-image-btn') as HTMLButtonElement;
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  const renderer = new AsciiRenderer(canvas);
+  let currentImage: HTMLImageElement | null = null;
+  let density = 16;
+
+  // ── Canvas sizing ─────────────────────────────────────────────────────────
+  function resizeCanvas() {
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    if (currentImage) rebuildGrid();
+  }
+
+  function rebuildGrid() {
+    if (!currentImage) return;
+    const { cells, grid } = convertImageToAscii(currentImage, canvas.width, canvas.height, density);
+    renderer.loadCells(cells, grid);
+    renderer.setEffect(effectSelect.value as EffectType);
+  }
+
+  const resizeObserver = new ResizeObserver(() => resizeCanvas());
+  resizeObserver.observe(container);
+  resizeCanvas();
+
+  // ── Image loading ─────────────────────────────────────────────────────────
+  function loadImage(file: File) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      currentImage = img;
+      rebuildGrid();
+      // Show controls, hide upload zone
+      uploadZone.style.display = 'none';
+      controls.classList.remove('hidden');
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  // ── Upload zone interactions ───────────────────────────────────────────────
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) loadImage(file);
+  });
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('opacity-80');
+  });
+
+  uploadZone.addEventListener('dragleave', () => {
+    uploadZone.classList.remove('opacity-80');
+  });
+
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('opacity-80');
+    const file = e.dataTransfer?.files[0];
+    if (file?.type.startsWith('image/')) loadImage(file);
+  });
+
+  // ── Controls wiring ───────────────────────────────────────────────────────
+  effectSelect.addEventListener('change', () => {
+    renderer.setEffect(effectSelect.value as EffectType);
+  });
+
+  replayBtn.addEventListener('click', () => {
+    renderer.triggerEffect();
+  });
+
+  densitySlider.addEventListener('input', () => {
+    density = parseInt(densitySlider.value, 10);
+    densityValue.textContent = String(density);
+    if (currentImage) rebuildGrid();
+  });
+
+  speedSlider.addEventListener('input', () => {
+    renderer.setSpeed(parseInt(speedSlider.value, 10) / 100);
+  });
+
+  newImageBtn.addEventListener('click', () => {
+    renderer.stop();
+    currentImage = null;
+    uploadZone.style.display = '';
+    controls.classList.add('hidden');
+    fileInput.value = '';
+    // Clear canvas
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  });
+
+  // ── Mouse tracking for mouse-react effect ─────────────────────────────────
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    renderer.mouseX = (e.clientX - rect.left) * scaleX;
+    renderer.mouseY = (e.clientY - rect.top) * scaleY;
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    renderer.mouseX = -9999;
+    renderer.mouseY = -9999;
+  });
+
+  // ── Touch tracking for mouse-react on mobile ──────────────────────────────
+  canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0]!;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    renderer.mouseX = (touch.clientX - rect.left) * scaleX;
+    renderer.mouseY = (touch.clientY - rect.top) * scaleY;
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', () => {
+    renderer.mouseX = -9999;
+    renderer.mouseY = -9999;
+  });
+</script>

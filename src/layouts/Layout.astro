@@ -1,0 +1,22 @@
+---
+import '../styles/global.css';
+interface Props {
+  title?: string;
+}
+const { title = 'ASCII Motion' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content="ASCII Motion transforms images into dynamic grids of text characters, blending retro aesthetics with modern digital art." />
+    <title>{title}</title>
+  </head>
+  <body class="bg-black text-white min-h-screen font-mono overflow-x-hidden">
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,28 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import AsciiCanvas from '../components/AsciiCanvas.astro';
+import UploadZone from '../components/UploadZone.astro';
+import Controls from '../components/Controls.astro';
+---
+
+<Layout title="ASCII Motion — Code Meets Movement">
+  <div class="flex flex-col h-screen">
+    <Header />
+
+    <!-- Main canvas area fills remaining height -->
+    <AsciiCanvas>
+      <UploadZone />
+    </AsciiCanvas>
+
+    <Controls />
+
+    <!-- Tagline footer -->
+    <footer class="px-6 py-4 text-center border-t border-white/5">
+      <p class="text-white/30 text-xs leading-relaxed max-w-sm mx-auto" style="font-family: 'Share Tech Mono', 'Courier New', monospace;">
+        ASCII motion transforms images into dynamic grids of text<br />
+        characters, blending retro aesthetics with modern digital art.
+      </p>
+    </footer>
+  </div>
+</Layout>
