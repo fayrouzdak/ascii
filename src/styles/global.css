@@ -3,6 +3,7 @@
 
 :root {
   color-scheme: dark;
+  --page-bg: #141314;
 }
 
 * {
@@ -13,7 +14,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #000;
+  background: var(--page-bg);
   color: #fff;
   font-family: 'Share Tech Mono', 'Courier New', Courier, monospace;
   height: 100%;
@@ -24,7 +25,7 @@ body {
   width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: var(--page-bg);
 }
 ::-webkit-scrollbar-thumb {
   background: #333;

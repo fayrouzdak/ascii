@@ -9,7 +9,7 @@
   aria-label="Upload image"
 >
   <!-- Dashed border overlay -->
-  <div class="border border-white/20 rounded-sm p-10 sm:p-16 flex flex-col items-center gap-4 hover:border-white/50 transition-colors duration-300 bg-black/80">
+  <div class="border border-white/20 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)]">
     <!-- ASCII-art style upload icon -->
     <pre class="text-white/40 text-xs leading-tight select-none" aria-hidden="true">{`
   +-------+
@@ -18,11 +18,6 @@
   |  /_\\  |
   +-------+
 `}</pre>
-    <div class="text-center">
-      <p class="text-white text-sm tracking-widest uppercase">Drop image here</p>
-      <p class="text-white/40 text-xs mt-1 tracking-wider">or click to browse</p>
-      <p class="text-white/20 text-xs mt-3">JPG · PNG · GIF · WEBP</p>
-    </div>
   </div>
 
   <input

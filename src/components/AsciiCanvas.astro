@@ -1,7 +1,7 @@
 ---
 ---
 
-<div class="relative flex-1 w-full overflow-hidden bg-black" id="canvas-container">
+<div class="relative flex h-full min-h-0 w-full flex-1 overflow-hidden transition-colors" id="canvas-container">
   <canvas id="ascii-canvas" class="block w-full h-full"></canvas>
   <!-- Upload zone is layered on top, hidden after image load -->
   <slot />
@@ -10,27 +10,101 @@
 <script>
   import { convertImageToAscii } from '../lib/ascii-converter';
   import { AsciiRenderer } from '../lib/renderer';
-  import type { EffectType } from '../lib/types';
+  import {
+    defaultConversionOptions,
+    type CharMode,
+    type ConversionOptions,
+    type TonePalette,
+  } from '../lib/conversion-options';
+  import { downloadAsciiPng, downloadAsciiText } from '../lib/ascii-export';
+  import { getPageBackgroundColor } from '../lib/page-background';
 
-  // ── DOM elements ──────────────────────────────────────────────────────────
   const container = document.getElementById('canvas-container') as HTMLDivElement;
   const canvas = document.getElementById('ascii-canvas') as HTMLCanvasElement;
   const uploadZone = document.getElementById('upload-zone') as HTMLDivElement;
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
-  const controls = document.getElementById('controls') as HTMLDivElement;
-  const effectSelect = document.getElementById('effect-select') as HTMLSelectElement;
-  const replayBtn = document.getElementById('replay-btn') as HTMLButtonElement;
-  const densitySlider = document.getElementById('density-slider') as HTMLInputElement;
-  const densityValue = document.getElementById('density-value') as HTMLSpanElement;
-  const speedSlider = document.getElementById('speed-slider') as HTMLInputElement;
   const newImageBtn = document.getElementById('new-image-btn') as HTMLButtonElement;
+  const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
+  const saveTxtBtn = document.getElementById('save-txt-btn') as HTMLButtonElement;
+  const savePngBtn = document.getElementById('save-png-btn') as HTMLButtonElement;
+  const resetFiltersBtn = document.getElementById('reset-filters-btn') as HTMLButtonElement;
+  const sizeDepthSlider = document.getElementById('size-depth-slider') as HTMLInputElement;
+  const ignoreWhiteToggle = document.getElementById('ignore-white-toggle') as HTMLInputElement;
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  const asciiColor = document.getElementById('ascii-color') as HTMLInputElement;
+  const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
+  const zoomValue = document.getElementById('zoom-value') as HTMLSpanElement;
+  const outputCols = document.getElementById('output-cols') as HTMLInputElement;
+  const outputColsVal = document.getElementById('output-cols-val') as HTMLSpanElement;
+  const brightness = document.getElementById('brightness') as HTMLInputElement;
+  const brightnessVal = document.getElementById('brightness-val') as HTMLSpanElement;
+  const contrast = document.getElementById('contrast') as HTMLInputElement;
+  const contrastVal = document.getElementById('contrast-val') as HTMLSpanElement;
+  const saturation = document.getElementById('saturation') as HTMLInputElement;
+  const saturationVal = document.getElementById('saturation-val') as HTMLSpanElement;
+  const hue = document.getElementById('hue') as HTMLInputElement;
+  const hueVal = document.getElementById('hue-val') as HTMLSpanElement;
+  const invertToggle = document.getElementById('invert-toggle') as HTMLInputElement;
+  const blur = document.getElementById('blur') as HTMLInputElement;
+  const blurVal = document.getElementById('blur-val') as HTMLSpanElement;
+  const sharpness = document.getElementById('sharpness') as HTMLInputElement;
+  const sharpnessVal = document.getElementById('sharpness-val') as HTMLSpanElement;
+  const styleSelect = document.getElementById('style-select') as HTMLSelectElement;
+
+  const SHADED_PREFIX = 'shaded:' as const;
+
+  function parseStyleSelect(value: string): { charMode: CharMode; tonePalette: TonePalette } {
+    if (value.startsWith(SHADED_PREFIX)) {
+      return {
+        charMode: 'shaded',
+        tonePalette: value.slice(SHADED_PREFIX.length) as TonePalette,
+      };
+    }
+    return {
+      charMode: value as CharMode,
+      tonePalette: 'fine-detail',
+    };
+  }
+
+  function styleSelectValueFromOptions(d: ConversionOptions): string {
+    if (d.charMode === 'shaded') {
+      return `${SHADED_PREFIX}${d.tonePalette}`;
+    }
+    return d.charMode;
+  }
+
   const renderer = new AsciiRenderer(canvas);
   let currentImage: HTMLImageElement | null = null;
-  let density = 16;
+  let conv: ConversionOptions = defaultConversionOptions();
 
-  // ── Canvas sizing ─────────────────────────────────────────────────────────
+  function readOptionsFromDom(): ConversionOptions {
+    return {
+      pictureForeground: asciiColor.value,
+      zoom: parseInt(zoomSlider.value, 10),
+      outputCols: parseInt(outputCols.value, 10),
+      brightness: parseInt(brightness.value, 10),
+      contrast: parseInt(contrast.value, 10),
+      saturation: parseInt(saturation.value, 10),
+      hue: parseInt(hue.value, 10),
+      invert: invertToggle.checked,
+      blur: parseFloat(blur.value),
+      sharpness: parseInt(sharpness.value, 10),
+      ...parseStyleSelect(styleSelect.value),
+      ignoreWhite: ignoreWhiteToggle.checked,
+    };
+  }
+
+  function syncLabels() {
+    zoomValue.textContent = zoomSlider.value;
+    outputColsVal.textContent = outputCols.value;
+    brightnessVal.textContent = brightness.value;
+    contrastVal.textContent = contrast.value;
+    saturationVal.textContent = saturation.value;
+    hueVal.textContent = hue.value;
+    blurVal.textContent = blur.value;
+    sharpnessVal.textContent = sharpness.value;
+  }
+
   function resizeCanvas() {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
@@ -39,31 +113,28 @@
 
   function rebuildGrid() {
     if (!currentImage) return;
-    const { cells, grid } = convertImageToAscii(currentImage, canvas.width, canvas.height, density);
+    conv = readOptionsFromDom();
+    renderer.setDisplayZoom(conv.zoom);
+    const { cells, grid } = convertImageToAscii(currentImage, canvas.width, canvas.height, conv);
     renderer.loadCells(cells, grid);
-    renderer.setEffect(effectSelect.value as EffectType);
   }
 
   const resizeObserver = new ResizeObserver(() => resizeCanvas());
   resizeObserver.observe(container);
   resizeCanvas();
 
-  // ── Image loading ─────────────────────────────────────────────────────────
   function loadImage(file: File) {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       currentImage = img;
       rebuildGrid();
-      // Show controls, hide upload zone
       uploadZone.style.display = 'none';
-      controls.classList.remove('hidden');
       URL.revokeObjectURL(url);
     };
     img.src = url;
   }
 
-  // ── Upload zone interactions ───────────────────────────────────────────────
   uploadZone.addEventListener('click', () => fileInput.click());
   uploadZone.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') fileInput.click();
@@ -90,64 +161,91 @@
     if (file?.type.startsWith('image/')) loadImage(file);
   });
 
-  // ── Controls wiring ───────────────────────────────────────────────────────
-  effectSelect.addEventListener('change', () => {
-    renderer.setEffect(effectSelect.value as EffectType);
+  const filterInputs: (HTMLInputElement | HTMLSelectElement)[] = [
+    asciiColor,
+    zoomSlider,
+    outputCols,
+    brightness,
+    contrast,
+    saturation,
+    hue,
+    invertToggle,
+    blur,
+    sharpness,
+    styleSelect,
+    ignoreWhiteToggle,
+  ];
+
+  filterInputs.forEach((el) => {
+    el.addEventListener('input', () => {
+      syncLabels();
+      if (currentImage) rebuildGrid();
+    });
+    el.addEventListener('change', () => {
+      syncLabels();
+      if (currentImage) rebuildGrid();
+    });
   });
 
-  replayBtn.addEventListener('click', () => {
-    renderer.triggerEffect();
+  sizeDepthSlider.addEventListener('input', () => {
+    renderer.setSizeDepth(parseInt(sizeDepthSlider.value, 10) / 100);
   });
 
-  densitySlider.addEventListener('input', () => {
-    density = parseInt(densitySlider.value, 10);
-    densityValue.textContent = String(density);
+  copyBtn.addEventListener('click', async () => {
+    const text = renderer.getText();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => {
+        copyBtn.textContent = 'Copy';
+      }, 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  });
+
+  saveTxtBtn.addEventListener('click', () => {
+    const text = renderer.getText();
+    if (!text.trim()) return;
+    downloadAsciiText(text);
+  });
+
+  savePngBtn.addEventListener('click', () => {
+    const text = renderer.getText();
+    if (!text.trim()) return;
+    conv = readOptionsFromDom();
+    downloadAsciiPng(text, {
+      pictureForeground: conv.pictureForeground,
+    });
+  });
+
+  resetFiltersBtn.addEventListener('click', () => {
+    const d = defaultConversionOptions();
+    asciiColor.value = d.pictureForeground;
+    zoomSlider.value = String(d.zoom);
+    outputCols.value = String(d.outputCols);
+    brightness.value = String(d.brightness);
+    contrast.value = String(d.contrast);
+    saturation.value = String(d.saturation);
+    hue.value = String(d.hue);
+    invertToggle.checked = d.invert;
+    blur.value = String(d.blur);
+    sharpness.value = String(d.sharpness);
+    styleSelect.value = styleSelectValueFromOptions(d);
+    ignoreWhiteToggle.checked = d.ignoreWhite;
+    syncLabels();
     if (currentImage) rebuildGrid();
   });
 
-  speedSlider.addEventListener('input', () => {
-    renderer.setSpeed(parseInt(speedSlider.value, 10) / 100);
-  });
-
   newImageBtn.addEventListener('click', () => {
-    renderer.stop();
     currentImage = null;
     uploadZone.style.display = '';
-    controls.classList.add('hidden');
     fileInput.value = '';
-    // Clear canvas
     const ctx = canvas.getContext('2d')!;
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = getPageBackgroundColor();
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   });
 
-  // ── Mouse tracking for mouse-react effect ─────────────────────────────────
-  canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    renderer.mouseX = (e.clientX - rect.left) * scaleX;
-    renderer.mouseY = (e.clientY - rect.top) * scaleY;
-  });
-
-  canvas.addEventListener('mouseleave', () => {
-    renderer.mouseX = -9999;
-    renderer.mouseY = -9999;
-  });
-
-  // ── Touch tracking for mouse-react on mobile ──────────────────────────────
-  canvas.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const touch = e.touches[0]!;
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    renderer.mouseX = (touch.clientX - rect.left) * scaleX;
-    renderer.mouseY = (touch.clientY - rect.top) * scaleY;
-  }, { passive: false });
-
-  canvas.addEventListener('touchend', () => {
-    renderer.mouseX = -9999;
-    renderer.mouseY = -9999;
-  });
+  syncLabels();
 </script>

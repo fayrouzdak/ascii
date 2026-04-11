@@ -1,65 +1,186 @@
 ---
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
 ---
 
 <div
   id="controls"
-  class="hidden w-full px-4 py-3 border-t border-white/10 bg-black flex flex-wrap items-center gap-x-6 gap-y-3 text-xs"
+  class:list={[
+    'flex h-full max-h-[min(50vh,22rem)] min-h-0 w-full shrink-0 flex-col border-t border-white/10 bg-[#171617] text-white md:max-h-none md:w-[min(100%,380px)] md:border-t-0',
+    className,
+  ]}
 >
-  <!-- Effect selector -->
-  <div class="flex items-center gap-2">
-    <label for="effect-select" class="text-white/50 tracking-widest uppercase text-[10px]">Effect</label>
-    <select
-      id="effect-select"
-      class="bg-black border border-white/20 text-white text-xs px-2 py-1 cursor-pointer hover:border-white/50 transition-colors focus:outline-none focus:border-white/70"
+  <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-[10px] tracking-wide">
+    <!-- Canvas: colors + view -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Canvas</h2>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div class="flex min-w-0 flex-1 items-center gap-1.5">
+          <span class="shrink-0 text-white/45 uppercase">ASCII</span>
+          <label for="ascii-color" class="sr-only">Character color</label>
+          <input
+            type="color"
+            id="ascii-color"
+            value="#eeeeee"
+            title="ASCII character color"
+            class="h-5 w-7 shrink-0 cursor-pointer border border-white/20 bg-black p-0"
+          />
+        </div>
+        <div class="flex min-w-[10rem] flex-1 items-center gap-1.5">
+          <label for="zoom-slider" class="shrink-0 text-white/45 uppercase">Zoom</label>
+          <input type="range" id="zoom-slider" min="50" max="200" value="100" class="min-w-0 flex-1 accent-white" />
+          <span id="zoom-value" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Output density -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Output</h2>
+      <div class="flex items-center gap-1.5">
+        <label for="output-cols" class="w-9 shrink-0 text-white/45 uppercase" title="Characters wide">Chars</label>
+        <input type="range" id="output-cols" min="40" max="200" value="100" class="min-w-0 flex-1 accent-white" />
+        <span id="output-cols-val" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
+      </div>
+    </section>
+
+    <!-- Color grading -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Color</h2>
+      <div class="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-3">
+        <div class="flex items-center gap-1.5">
+          <label for="brightness" class="w-9 shrink-0 text-white/45 uppercase">Bri</label>
+          <input type="range" id="brightness" min="-100" max="100" value="0" class="min-w-0 flex-1 accent-white" />
+          <span id="brightness-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <label for="contrast" class="w-9 shrink-0 text-white/45 uppercase">Con</label>
+          <input type="range" id="contrast" min="-100" max="100" value="0" class="min-w-0 flex-1 accent-white" />
+          <span id="contrast-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <label for="saturation" class="w-9 shrink-0 text-white/45 uppercase">Sat</label>
+          <input type="range" id="saturation" min="0" max="200" value="100" class="min-w-0 flex-1 accent-white" />
+          <span id="saturation-val" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <label for="hue" class="w-9 shrink-0 text-white/45 uppercase">Hue</label>
+          <input type="range" id="hue" min="0" max="360" value="0" class="min-w-0 flex-1 accent-white" />
+          <span id="hue-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        </div>
+        <label class="flex items-center gap-2 sm:col-span-2 cursor-pointer select-none">
+          <span class="w-9 shrink-0 text-white/45 uppercase">Inv</span>
+          <input type="checkbox" id="invert-toggle" class="accent-white cursor-pointer" />
+        </label>
+      </div>
+    </section>
+
+    <!-- Blur / sharpen -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Detail</h2>
+      <div class="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-3">
+        <div class="flex items-center gap-1.5">
+          <label for="blur" class="w-10 shrink-0 text-white/45 uppercase">Blur</label>
+          <input type="range" id="blur" min="0" max="10" value="0" step="0.5" class="min-w-0 flex-1 accent-white" />
+          <span id="blur-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <label for="sharpness" class="w-10 shrink-0 text-white/45 uppercase">Sharp</label>
+          <input type="range" id="sharpness" min="0" max="20" value="9" class="min-w-0 flex-1 accent-white" />
+          <span id="sharpness-val" class="w-7 shrink-0 tabular-nums text-white/40">9</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Character style -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Style</h2>
+      <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+        <label for="style-select" class="w-14 shrink-0 text-white/45">Mode</label>
+        <select
+          id="style-select"
+          class="min-w-0 flex-1 border border-white/20 bg-black px-1 py-0.5 text-[10px] text-white"
+          aria-label="Character style preset"
+        >
+          <optgroup label="Tone ramp">
+            <option value="shaded:fine-detail" selected>Fine detail</option>
+            <option value="shaded:block-shades">Block shades</option>
+            <option value="shaded:binary">Binary</option>
+            <option value="shaded:dos-glyphs">DOS &amp; box</option>
+            <option value="shaded:math">Math &amp; science</option>
+          </optgroup>
+          <optgroup label="Other styles">
+            <option value="random">Random</option>
+            <option value="cross">Crosses</option>
+            <option value="dots">Dots</option>
+          </optgroup>
+        </select>
+      </div>
+    </section>
+
+    <!-- Size depth + ignore white -->
+    <section class="flex flex-col gap-y-2">
+      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Depth</h2>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+        <div class="flex items-center gap-2">
+          <label for="size-depth-slider" class="text-white/50 tracking-widest uppercase text-[10px]">Size Depth</label>
+          <input
+            type="range"
+            id="size-depth-slider"
+            min="0"
+            max="100"
+            value="0"
+            class="w-20 sm:w-28 accent-white cursor-pointer"
+          />
+        </div>
+
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" id="ignore-white-toggle" class="accent-white cursor-pointer" />
+          <span class="text-white/50 tracking-widest uppercase text-[10px]">Ignore White</span>
+        </label>
+      </div>
+    </section>
+  </div>
+
+  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 px-3 pb-3 pt-2">
+    <button
+      id="copy-btn"
+      type="button"
+      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
     >
-      <option value="none">None (static)</option>
-      <option value="assembly" selected>Assembly</option>
-      <option value="wave">Wave</option>
-      <option value="mouse-react">Mouse React</option>
-      <option value="cycle">Cycle</option>
-    </select>
+      Copy
+    </button>
+    <button
+      id="save-txt-btn"
+      type="button"
+      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
+    >
+      Save TXT
+    </button>
+    <button
+      id="save-png-btn"
+      type="button"
+      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
+    >
+      Save PNG
+    </button>
+
+    <button
+      id="reset-filters-btn"
+      type="button"
+      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
+    >
+      Reset filters
+    </button>
+
+    <button
+      id="new-image-btn"
+      type="button"
+      class="ml-auto border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
+    >
+      New Image
+    </button>
   </div>
-
-  <!-- Replay button (for assembly/cycle) -->
-  <button
-    id="replay-btn"
-    class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-  >
-    Replay
-  </button>
-
-  <!-- Density -->
-  <div class="flex items-center gap-2">
-    <label for="density-slider" class="text-white/50 tracking-widest uppercase text-[10px]">Density</label>
-    <input
-      type="range"
-      id="density-slider"
-      min="3"
-      max="16"
-      value="16"
-      class="w-20 sm:w-28 accent-white cursor-pointer"
-    />
-    <span id="density-value" class="text-white/40 w-4 text-right">16</span>
-  </div>
-
-  <!-- Speed -->
-  <div class="flex items-center gap-2">
-    <label for="speed-slider" class="text-white/50 tracking-widest uppercase text-[10px]">Speed</label>
-    <input
-      type="range"
-      id="speed-slider"
-      min="0"
-      max="100"
-      value="50"
-      class="w-20 sm:w-28 accent-white cursor-pointer"
-    />
-  </div>
-
-  <!-- New image -->
-  <button
-    id="new-image-btn"
-    class="ml-auto border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-  >
-    New Image
-  </button>
 </div>
