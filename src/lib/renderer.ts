@@ -26,7 +26,7 @@ export class AsciiRenderer {
   }
 
   setDisplayZoom(zoomPercent: number) {
-    this.displayZoom = Math.max(0.25, Math.min(3, zoomPercent / 100));
+    this.displayZoom = Math.max(0.01, Math.min(1, zoomPercent / 100));
   }
 
   getText(): string {
@@ -59,7 +59,7 @@ export class AsciiRenderer {
     const cy = canvas.height * 0.5;
 
     const baseFontSize = grid.fontSize * zx;
-    const baseFont = `${baseFontSize}px 'Courier New', Courier, monospace`;
+    const baseFont = `${baseFontSize}px 'VT323', monospace`;
     ctx.font = baseFont;
     let lastFontSize = baseFontSize;
 
@@ -72,7 +72,7 @@ export class AsciiRenderer {
         const scale = minScale + cell.brightness * (maxScale - minScale);
         const cellFontSize = Math.max(1, baseFontSize * scale);
         if (Math.abs(cellFontSize - lastFontSize) > 0.25) {
-          ctx.font = `${cellFontSize.toFixed(1)}px 'Courier New', Courier, monospace`;
+          ctx.font = `${cellFontSize.toFixed(1)}px 'VT323', monospace`;
           lastFontSize = cellFontSize;
         }
       } else if (lastFontSize !== baseFontSize) {

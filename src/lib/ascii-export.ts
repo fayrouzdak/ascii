@@ -32,7 +32,7 @@ export function downloadAsciiPng(
 
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d')!;
-  tempCtx.font = `${fontSize}px Consolas, Monaco, "Liberation Mono", monospace`;
+  tempCtx.font = `${fontSize}px 'VT323', monospace`;
 
   let maxLineWidth = 0;
   for (let i = 0; i < lines.length; i++) {
@@ -58,7 +58,7 @@ export function downloadAsciiPng(
     ctx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
 
-  ctx.font = `${fontSize}px Consolas, Monaco, "Liberation Mono", monospace`;
+  ctx.font = `${fontSize}px 'VT323', monospace`;
   ctx.textBaseline = 'top';
   ctx.fillStyle = opts.pictureForeground;
 

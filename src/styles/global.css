@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -16,8 +16,21 @@ body {
   padding: 0;
   background: var(--page-bg);
   color: #fff;
-  font-family: 'Share Tech Mono', 'Courier New', Courier, monospace;
+  font-family: 'VT323', monospace;
+  font-size: 15px;
+  letter-spacing: 0.5px;
   height: 100%;
+  cursor: default;
+}
+
+/* Regular arrow cursor for interactive elements (Tailwind preflight uses pointer on buttons) */
+button,
+[role='button'],
+[role='option'],
+a,
+summary,
+label {
+  cursor: default;
 }
 
 /* Slim scrollbar */
@@ -47,7 +60,7 @@ input[type='range']::-webkit-slider-thumb {
   width: 10px;
   height: 10px;
   background: #fff;
-  cursor: pointer;
+  cursor: default;
   border-radius: 0;
 }
 
@@ -55,13 +68,120 @@ input[type='range']::-moz-range-thumb {
   width: 10px;
   height: 10px;
   background: #fff;
-  cursor: pointer;
+  cursor: default;
   border-radius: 0;
   border: none;
 }
 
+/*
+ * Bar range — rose fill, 5% white track, white thumb.
+ * Thumb position: --range-thumb-pct (set in JS). Fill ends 2px before the
+ * thumb’s left edge (half thumb width + 2px gap from center).
+ */
+input.range-bar {
+  --range-thumb-pct: 37.5%;
+  --range-track-h: 20px;
+  --range-thumb-w: 2px;
+  --range-thumb-pad-y: 4px;
+  --range-thumb-h: calc(var(--range-track-h) - var(--range-thumb-pad-y) * 2);
+  --range-salmon-offset: calc(var(--range-thumb-w) * 0.5 + 2px);
+  --range-fill: #d48b8f;
+  --range-track-bg: rgba(255, 255, 255, 0.05);
+  height: var(--range-track-h);
+  background: var(--range-track-bg);
+  accent-color: transparent;
+}
+
+input.range-bar::-webkit-slider-runnable-track {
+  height: var(--range-track-h);
+  background: linear-gradient(
+    to right,
+    var(--range-fill) 0%,
+    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-track-bg) 100%
+  );
+  border-radius: 0;
+}
+
+input.range-bar::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--range-thumb-w);
+  height: var(--range-thumb-h);
+  margin-top: var(--range-thumb-pad-y);
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  cursor: default;
+  box-shadow: none;
+}
+
+input.range-bar::-moz-range-track {
+  height: var(--range-track-h);
+  background: linear-gradient(
+    to right,
+    var(--range-fill) 0%,
+    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-track-bg) 100%
+  );
+  border-radius: 0;
+}
+
+input.range-bar::-moz-range-progress {
+  height: var(--range-track-h);
+  background: transparent;
+  border-radius: 0;
+}
+
+input.range-bar::-moz-range-thumb {
+  width: var(--range-thumb-w);
+  height: var(--range-thumb-h);
+  background: #fff;
+  border: none;
+  border-radius: 0;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+/* Rectangular toggle: off = left (white), on = right (salmon); track LTR regardless of page dir */
+.pixel-toggle-track {
+  --pt-w: 28px;
+  --pt-h: 18px;
+  --pt-pad: 2px;
+  --pt-handle-w: calc((var(--pt-w) - 2px) / 2);
+  --pt-on-left: calc(var(--pt-w) - var(--pt-pad) - var(--pt-handle-w));
+  display: block;
+  width: var(--pt-w);
+  height: var(--pt-h);
+  background: #2a2a2a;
+  border-radius: 0;
+  position: relative;
+}
+
+.pixel-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: var(--pt-pad);
+  left: var(--pt-pad);
+  width: var(--pt-handle-w);
+  height: calc(var(--pt-h) - 2 * var(--pt-pad));
+  background: #fff;
+  border-radius: 0;
+  transition:
+    left 0.12s ease,
+    background-color 0.12s ease;
+}
+
+input.pixel-toggle-input:checked + .pixel-toggle-track::after {
+  left: var(--pt-on-left);
+  background: #d48b8f;
+}
+
 select {
   border-radius: 0;
+  cursor: default;
 }
 
 /* Prevent canvas context menu on long-press mobile */

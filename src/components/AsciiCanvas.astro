@@ -25,13 +25,37 @@
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
   const newImageBtn = document.getElementById('new-image-btn') as HTMLButtonElement;
   const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
+  const copyBtnDefaultHtml = copyBtn.innerHTML;
+  const saveDropdown = document.getElementById('save-dropdown') as HTMLDivElement | null;
+  const saveMenuBtn = document.getElementById('save-menu-btn') as HTMLButtonElement | null;
+  const saveMenu = document.getElementById('save-menu') as HTMLDivElement | null;
   const saveTxtBtn = document.getElementById('save-txt-btn') as HTMLButtonElement;
   const savePngBtn = document.getElementById('save-png-btn') as HTMLButtonElement;
-  const resetFiltersBtn = document.getElementById('reset-filters-btn') as HTMLButtonElement;
   const sizeDepthSlider = document.getElementById('size-depth-slider') as HTMLInputElement;
+  const sizeDepthVal = document.getElementById('size-depth-val') as HTMLSpanElement;
   const ignoreWhiteToggle = document.getElementById('ignore-white-toggle') as HTMLInputElement;
 
   const asciiColor = document.getElementById('ascii-color') as HTMLInputElement;
+  const asciiColorPresetButtons = document.querySelectorAll<HTMLButtonElement>('[data-ascii-color]');
+
+  function syncAsciiColorSwatches() {
+    const val = asciiColor.value.trim().toLowerCase();
+    let matched = false;
+    asciiColorPresetButtons.forEach((btn) => {
+      const hex = (btn.dataset.asciiColor ?? '').toLowerCase();
+      const on = hex === val;
+      btn.setAttribute('aria-pressed', String(on));
+      if (on) matched = true;
+    });
+    if (!matched && asciiColorPresetButtons.length > 0) {
+      const first = asciiColorPresetButtons[0];
+      const fallback = first.dataset.asciiColor ?? '#8b91d4';
+      asciiColor.value = fallback;
+      asciiColorPresetButtons.forEach((b, i) => {
+        b.setAttribute('aria-pressed', String(i === 0));
+      });
+    }
+  }
   const zoomSlider = document.getElementById('zoom-slider') as HTMLInputElement;
   const zoomValue = document.getElementById('zoom-value') as HTMLSpanElement;
   const outputCols = document.getElementById('output-cols') as HTMLInputElement;
@@ -50,6 +74,11 @@
   const sharpness = document.getElementById('sharpness') as HTMLInputElement;
   const sharpnessVal = document.getElementById('sharpness-val') as HTMLSpanElement;
   const styleSelect = document.getElementById('style-select') as HTMLSelectElement;
+  const styleSelectTrigger = document.getElementById('style-select-trigger') as HTMLButtonElement | null;
+  const styleSelectMenu = document.getElementById('style-select-menu') as HTMLDivElement | null;
+  const styleSelectDropdown = document.getElementById('style-select-dropdown') as HTMLDivElement | null;
+  const styleSelectCurrent = document.getElementById('style-select-current') as HTMLSpanElement | null;
+  const controlsScroll = document.getElementById('controls-scroll') as HTMLElement | null;
 
   const SHADED_PREFIX = 'shaded:' as const;
 
@@ -94,6 +123,33 @@
     };
   }
 
+  const rangeBarInputs: HTMLInputElement[] = [
+    zoomSlider,
+    outputCols,
+    blur,
+    sharpness,
+    sizeDepthSlider,
+    brightness,
+    contrast,
+    saturation,
+    hue,
+  ];
+
+  function syncRangeBarStyle(el: HTMLInputElement) {
+    const min = parseFloat(el.min);
+    const max = parseFloat(el.max);
+    const val = parseFloat(el.value);
+    const thumbPct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+    el.style.setProperty('--range-thumb-pct', `${thumbPct}%`);
+  }
+
+  function syncStyleSelectLabel() {
+    if (!styleSelectCurrent) return;
+    const opt = styleSelect.selectedOptions[0];
+    const raw = opt?.text?.trim() ?? styleSelect.value;
+    styleSelectCurrent.textContent = raw.toUpperCase();
+  }
+
   function syncLabels() {
     zoomValue.textContent = zoomSlider.value;
     outputColsVal.textContent = outputCols.value;
@@ -103,6 +159,32 @@
     hueVal.textContent = hue.value;
     blurVal.textContent = blur.value;
     sharpnessVal.textContent = sharpness.value;
+    sizeDepthVal.textContent = sizeDepthSlider.value;
+    rangeBarInputs.forEach(syncRangeBarStyle);
+    syncStyleSelectLabel();
+  }
+
+  function positionStyleMenu() {
+    if (!styleSelectTrigger || !styleSelectMenu) return;
+    const rect = styleSelectTrigger.getBoundingClientRect();
+    const gap = 4;
+    styleSelectMenu.style.left = `${rect.left}px`;
+    styleSelectMenu.style.top = `${rect.bottom + gap}px`;
+    styleSelectMenu.style.width = `${Math.max(rect.width, 168)}px`;
+  }
+
+  function setStyleMenuOpen(open: boolean) {
+    if (!styleSelectTrigger || !styleSelectMenu) return;
+    styleSelectTrigger.setAttribute('aria-expanded', String(open));
+    styleSelectMenu.classList.toggle('hidden', !open);
+    if (open) {
+      positionStyleMenu();
+      requestAnimationFrame(() => positionStyleMenu());
+    }
+  }
+
+  function closeStyleMenu() {
+    setStyleMenuOpen(false);
   }
 
   function resizeCanvas() {
@@ -187,7 +269,23 @@
     });
   });
 
+  asciiColorPresetButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const hex = btn.dataset.asciiColor;
+      if (!hex) return;
+      asciiColor.value = hex;
+      asciiColorPresetButtons.forEach((b) => {
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      asciiColor.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+
+  syncAsciiColorSwatches();
+
   sizeDepthSlider.addEventListener('input', () => {
+    syncRangeBarStyle(sizeDepthSlider);
+    sizeDepthVal.textContent = sizeDepthSlider.value;
     renderer.setSizeDepth(parseInt(sizeDepthSlider.value, 10) / 100);
   });
 
@@ -196,19 +294,93 @@
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      copyBtn.textContent = 'Copied!';
+      copyBtn.innerHTML =
+        '<span class="text-[15px] uppercase">Copied!</span>';
+      copyBtn.setAttribute('aria-label', 'Copied');
       setTimeout(() => {
-        copyBtn.textContent = 'Copy';
+        copyBtn.innerHTML = copyBtnDefaultHtml;
+        copyBtn.setAttribute('aria-label', 'Copy');
       }, 2000);
     } catch {
       /* clipboard unavailable */
     }
   });
 
+  function setSaveMenuOpen(open: boolean) {
+    if (!saveMenuBtn || !saveMenu) return;
+    saveMenuBtn.setAttribute('aria-expanded', String(open));
+    saveMenu.classList.toggle('hidden', !open);
+  }
+
+  function closeSaveMenu() {
+    setSaveMenuOpen(false);
+  }
+
+  if (saveMenuBtn && saveMenu && saveDropdown) {
+    saveMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = saveMenuBtn.getAttribute('aria-expanded') === 'true';
+      setSaveMenuOpen(!open);
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!saveDropdown.contains(e.target as Node)) closeSaveMenu();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && saveMenuBtn.getAttribute('aria-expanded') === 'true') {
+        closeSaveMenu();
+        saveMenuBtn.focus();
+      }
+    });
+  }
+
+  if (styleSelectTrigger && styleSelectMenu && styleSelectDropdown) {
+    styleSelectTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = styleSelectTrigger.getAttribute('aria-expanded') === 'true';
+      setStyleMenuOpen(!open);
+    });
+
+    styleSelectMenu.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest('[data-value]');
+      if (!t) return;
+      const v = t.getAttribute('data-value');
+      if (!v) return;
+      styleSelect.value = v;
+      syncStyleSelectLabel();
+      closeStyleMenu();
+      styleSelect.dispatchEvent(new Event('input', { bubbles: true }));
+      styleSelect.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!styleSelectDropdown.contains(e.target as Node)) closeStyleMenu();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && styleSelectTrigger.getAttribute('aria-expanded') === 'true') {
+        closeStyleMenu();
+        styleSelectTrigger.focus();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (styleSelectTrigger.getAttribute('aria-expanded') === 'true') positionStyleMenu();
+    });
+
+    if (controlsScroll) {
+      controlsScroll.addEventListener('scroll', () => {
+        if (styleSelectTrigger.getAttribute('aria-expanded') === 'true') closeStyleMenu();
+      });
+    }
+  }
+
   saveTxtBtn.addEventListener('click', () => {
     const text = renderer.getText();
     if (!text.trim()) return;
     downloadAsciiText(text);
+    closeSaveMenu();
   });
 
   savePngBtn.addEventListener('click', () => {
@@ -218,24 +390,7 @@
     downloadAsciiPng(text, {
       pictureForeground: conv.pictureForeground,
     });
-  });
-
-  resetFiltersBtn.addEventListener('click', () => {
-    const d = defaultConversionOptions();
-    asciiColor.value = d.pictureForeground;
-    zoomSlider.value = String(d.zoom);
-    outputCols.value = String(d.outputCols);
-    brightness.value = String(d.brightness);
-    contrast.value = String(d.contrast);
-    saturation.value = String(d.saturation);
-    hue.value = String(d.hue);
-    invertToggle.checked = d.invert;
-    blur.value = String(d.blur);
-    sharpness.value = String(d.sharpness);
-    styleSelect.value = styleSelectValueFromOptions(d);
-    ignoreWhiteToggle.checked = d.ignoreWhite;
-    syncLabels();
-    if (currentImage) rebuildGrid();
+    closeSaveMenu();
   });
 
   newImageBtn.addEventListener('click', () => {

@@ -3,21 +3,24 @@
 
 <div
   id="upload-zone"
-  class="absolute inset-0 flex flex-col items-center justify-center z-10 cursor-pointer transition-all duration-300"
+  class="absolute inset-0 flex flex-col items-center justify-center z-10 cursor-default transition-all duration-300"
   role="button"
   tabindex="0"
   aria-label="Upload image"
 >
   <!-- Dashed border overlay -->
-  <div class="border border-white/20 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)]">
-    <!-- ASCII-art style upload icon -->
-    <pre class="text-white/40 text-xs leading-tight select-none" aria-hidden="true">{`
-  +-------+
-  |       |
-  |   ↑   |
-  |  /_\\  |
-  +-------+
-`}</pre>
+  <div class="group border border-white/5 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,#D48B8F_2%,#141314)]">
+    <svg
+      class="h-[30px] w-[30px] shrink-0 select-none text-white transition-colors duration-300 group-hover:text-[#D48B8F]"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 20h6v-2h2v2h4v2H4v-2h2v-2h2v2Zm-4 0H2V4h2v16Zm18 0h-2v-4h-2v-2h2V4h2v16Zm-12-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm4 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm-8-2H8v-2h2v2Zm-2-2H6V8h2v2Zm4 0h-2V8h2v2Zm-2-2H8V6h2v2Zm10-4H4V2h16v2Z"
+      />
+    </svg>
   </div>
 
   <input

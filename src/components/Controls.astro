@@ -3,6 +3,18 @@ interface Props {
   class?: string;
 }
 const { class: className } = Astro.props;
+
+const asciiCharColors: { hex: string; label: string }[] = [
+  { hex: '#8b91d4', label: 'Blue lavender' },
+  { hex: '#95bd9b', label: 'Sage' },
+  { hex: '#bc8bd4', label: 'Lilac' },
+  { hex: '#cecda3', label: 'Olive' },
+  { hex: '#d29c88', label: 'Terracotta' },
+  { hex: '#d48b8f', label: 'Rose' },
+];
+const asciiCharColorDefault = asciiCharColors[0].hex;
+const asciiColorSwatchBtnClass =
+  'box-border flex h-5 w-5 shrink-0 cursor-default items-center justify-center border-2 border-white/25 bg-transparent p-0 transition-colors hover:border-white/90 aria-pressed:border-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/40';
 ---
 
 <div
@@ -12,175 +24,360 @@ const { class: className } = Astro.props;
     className,
   ]}
 >
-  <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-[10px] tracking-wide">
-    <!-- Canvas: colors + view -->
+  <div id="controls-scroll" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-[15px]">
+    <!-- Blur / sharpen -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Canvas</h2>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <div class="flex min-w-0 flex-1 items-center gap-1.5">
-          <span class="shrink-0 text-white/45 uppercase">ASCII</span>
-          <label for="ascii-color" class="sr-only">Character color</label>
-          <input
-            type="color"
-            id="ascii-color"
-            value="#eeeeee"
-            title="ASCII character color"
-            class="h-5 w-7 shrink-0 cursor-pointer border border-white/20 bg-black p-0"
-          />
+      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Detail</h2>
+      <div class="flex flex-col gap-y-2">
+        <div class="flex min-w-0 items-center gap-1.5">
+          <input type="hidden" id="ascii-color" value={asciiCharColorDefault} aria-labelledby="ascii-color-label" />
+          <span id="ascii-color-label" class="min-w-0 flex-1 text-white/45 uppercase">color</span>
+          <div
+            class="flex shrink-0 flex-nowrap items-center justify-end gap-2.5"
+            role="group"
+            aria-labelledby="ascii-color-label"
+          >
+            {asciiCharColors.map((c, i) => (
+              <button
+                type="button"
+                data-ascii-color={c.hex}
+                title={c.label}
+                aria-label={c.label}
+                aria-pressed={i === 0}
+                class={asciiColorSwatchBtnClass}
+              >
+                <span
+                  class="h-4 w-4 shrink-0"
+                  style={`background-color: ${c.hex}`}
+                  aria-hidden="true"
+                />
+              </button>
+            ))}
+          </div>
         </div>
-        <div class="flex min-w-[10rem] flex-1 items-center gap-1.5">
-          <label for="zoom-slider" class="shrink-0 text-white/45 uppercase">Zoom</label>
-          <input type="range" id="zoom-slider" min="50" max="200" value="100" class="min-w-0 flex-1 accent-white" />
-          <span id="zoom-value" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="zoom-slider" class="min-w-0 flex-1 text-white/45 uppercase">Zoom</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="zoom-slider"
+              min="1"
+              max="100"
+              value="100"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="zoom-value"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >100</span>
+          </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Output density -->
-    <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Output</h2>
-      <div class="flex items-center gap-1.5">
-        <label for="output-cols" class="w-9 shrink-0 text-white/45 uppercase" title="Characters wide">Chars</label>
-        <input type="range" id="output-cols" min="40" max="200" value="100" class="min-w-0 flex-1 accent-white" />
-        <span id="output-cols-val" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
-      </div>
-    </section>
-
-    <!-- Color grading -->
-    <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Color</h2>
-      <div class="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-3">
-        <div class="flex items-center gap-1.5">
-          <label for="brightness" class="w-9 shrink-0 text-white/45 uppercase">Bri</label>
-          <input type="range" id="brightness" min="-100" max="100" value="0" class="min-w-0 flex-1 accent-white" />
-          <span id="brightness-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        <div class="flex w-full min-w-0 flex-row items-center gap-1.5">
+          <label for="output-cols" class="min-w-0 flex-1 text-white/45 uppercase" title="Characters wide">Chars</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="output-cols"
+              min="1"
+              max="100"
+              value="100"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="output-cols-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >100</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <label for="contrast" class="w-9 shrink-0 text-white/45 uppercase">Con</label>
-          <input type="range" id="contrast" min="-100" max="100" value="0" class="min-w-0 flex-1 accent-white" />
-          <span id="contrast-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="blur" class="min-w-0 flex-1 text-white/45 uppercase">Blur</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="blur"
+              min="0"
+              max="10"
+              value="0"
+              step="0.5"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="blur-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >0</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <label for="saturation" class="w-9 shrink-0 text-white/45 uppercase">Sat</label>
-          <input type="range" id="saturation" min="0" max="200" value="100" class="min-w-0 flex-1 accent-white" />
-          <span id="saturation-val" class="w-7 shrink-0 tabular-nums text-white/40">100</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="sharpness" class="min-w-0 flex-1 text-white/45 uppercase">Sharp</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="sharpness"
+              min="0"
+              max="20"
+              value="9"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="sharpness-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >9</span>
+          </div>
         </div>
-        <div class="flex items-center gap-1.5">
-          <label for="hue" class="w-9 shrink-0 text-white/45 uppercase">Hue</label>
-          <input type="range" id="hue" min="0" max="360" value="0" class="min-w-0 flex-1 accent-white" />
-          <span id="hue-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="size-depth-slider" class="min-w-0 flex-1 text-white/45 uppercase">Size Depth</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="size-depth-slider"
+              min="0"
+              max="100"
+              value="0"
+              class="range-bar relative z-[1] min-w-0 w-full cursor-default"
+            />
+            <span
+              id="size-depth-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >0</span>
+          </div>
         </div>
-        <label class="flex items-center gap-2 sm:col-span-2 cursor-pointer select-none">
-          <span class="w-9 shrink-0 text-white/45 uppercase">Inv</span>
-          <input type="checkbox" id="invert-toggle" class="accent-white cursor-pointer" />
+        <label class="flex min-w-0 cursor-default select-none items-center gap-1.5" for="ignore-white-toggle">
+          <span class="min-w-0 flex-1 text-white/45 uppercase">Ignore White</span>
+          <span class="flex min-w-0 flex-1 items-center justify-end">
+            <span
+              dir="ltr"
+              class="relative inline-block shrink-0 has-[input:focus-visible]:ring-1 has-[input:focus-visible]:ring-white/40 has-[input:focus-visible]:ring-offset-2 has-[input:focus-visible]:ring-offset-[#141314]"
+            >
+              <input
+                type="checkbox"
+                id="ignore-white-toggle"
+                class="pixel-toggle-input absolute inset-0 z-[1] m-0 size-full cursor-default opacity-0"
+              />
+              <span class="pixel-toggle-track pointer-events-none" aria-hidden="true"></span>
+            </span>
+          </span>
         </label>
       </div>
     </section>
 
-    <!-- Blur / sharpen -->
+    <!-- Character style (custom list opens below; native select is hidden for state) -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Detail</h2>
-      <div class="grid grid-cols-1 gap-y-2 sm:grid-cols-2 sm:gap-x-3">
-        <div class="flex items-center gap-1.5">
-          <label for="blur" class="w-10 shrink-0 text-white/45 uppercase">Blur</label>
-          <input type="range" id="blur" min="0" max="10" value="0" step="0.5" class="min-w-0 flex-1 accent-white" />
-          <span id="blur-val" class="w-7 shrink-0 tabular-nums text-white/40">0</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <label for="sharpness" class="w-10 shrink-0 text-white/45 uppercase">Sharp</label>
-          <input type="range" id="sharpness" min="0" max="20" value="9" class="min-w-0 flex-1 accent-white" />
-          <span id="sharpness-val" class="w-7 shrink-0 tabular-nums text-white/40">9</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Character style -->
-    <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Style</h2>
-      <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-        <label for="style-select" class="w-14 shrink-0 text-white/45">Mode</label>
-        <select
-          id="style-select"
-          class="min-w-0 flex-1 border border-white/20 bg-black px-1 py-0.5 text-[10px] text-white"
-          aria-label="Character style preset"
-        >
-          <optgroup label="Tone ramp">
+      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Style</h2>
+      <div class="flex min-w-0 items-center gap-1.5">
+        <label for="style-select-trigger" class="min-w-0 flex-1 text-white/45">Mode</label>
+        <div id="style-select-dropdown" class="relative min-w-0 flex-1">
+          <select id="style-select" class="hidden" tabindex="-1" aria-hidden="true">
             <option value="shaded:fine-detail" selected>Fine detail</option>
             <option value="shaded:block-shades">Block shades</option>
             <option value="shaded:binary">Binary</option>
             <option value="shaded:dos-glyphs">DOS &amp; box</option>
             <option value="shaded:math">Math &amp; science</option>
-          </optgroup>
-          <optgroup label="Other styles">
             <option value="random">Random</option>
             <option value="cross">Crosses</option>
             <option value="dots">Dots</option>
-          </optgroup>
-        </select>
+          </select>
+          <button
+            type="button"
+            id="style-select-trigger"
+            class="flex h-7 w-full min-w-0 items-center justify-between gap-2 border-0 bg-white/5 px-2 py-0 text-left text-[15px] font-normal uppercase text-white ring-0 outline-none focus:ring-0 focus:outline-none focus-visible:ring-0 focus-visible:outline-none"
+            aria-label="Character style preset"
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            aria-controls="style-select-menu"
+          >
+            <span id="style-select-current" class="min-w-0 truncate leading-none uppercase">Fine detail</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0 opacity-60" aria-hidden="true">
+              <path d="M7 10l5 5 5-5H7z" />
+            </svg>
+          </button>
+          <div
+            id="style-select-menu"
+            role="listbox"
+            class="fixed z-[100] hidden border border-white/5 bg-[#171617] py-1 font-normal uppercase [font-variant:normal]"
+            aria-label="Character style preset"
+          >
+            <button type="button" role="option" data-value="shaded:fine-detail" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Fine detail</button>
+            <button type="button" role="option" data-value="shaded:block-shades" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Block shades</button>
+            <button type="button" role="option" data-value="shaded:binary" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Binary</button>
+            <button type="button" role="option" data-value="shaded:dos-glyphs" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">DOS &amp; box</button>
+            <button type="button" role="option" data-value="shaded:math" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Math &amp; science</button>
+            <button type="button" role="option" data-value="random" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Random</button>
+            <button type="button" role="option" data-value="cross" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Crosses</button>
+            <button type="button" role="option" data-value="dots" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Dots</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Size depth + ignore white -->
+    <!-- Color grading -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[9px] font-normal uppercase tracking-[0.2em] text-white/35">Depth</h2>
-      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-        <div class="flex items-center gap-2">
-          <label for="size-depth-slider" class="text-white/50 tracking-widest uppercase text-[10px]">Size Depth</label>
-          <input
-            type="range"
-            id="size-depth-slider"
-            min="0"
-            max="100"
-            value="0"
-            class="w-20 sm:w-28 accent-white cursor-pointer"
-          />
+      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Color</h2>
+      <div class="flex flex-col gap-y-2">
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="brightness" class="min-w-0 flex-1 text-white/45 uppercase">Bri</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="brightness"
+              min="-100"
+              max="100"
+              value="0"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="brightness-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >0</span>
+          </div>
         </div>
-
-        <label class="flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" id="ignore-white-toggle" class="accent-white cursor-pointer" />
-          <span class="text-white/50 tracking-widest uppercase text-[10px]">Ignore White</span>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="contrast" class="min-w-0 flex-1 text-white/45 uppercase">Con</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="contrast"
+              min="-100"
+              max="100"
+              value="0"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="contrast-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >0</span>
+          </div>
+        </div>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="saturation" class="min-w-0 flex-1 text-white/45 uppercase">Sat</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="saturation"
+              min="0"
+              max="100"
+              value="100"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="saturation-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >100</span>
+          </div>
+        </div>
+        <div class="flex min-w-0 items-center gap-1.5">
+          <label for="hue" class="min-w-0 flex-1 text-white/45 uppercase">Hue</label>
+          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
+            <input
+              type="range"
+              id="hue"
+              min="0"
+              max="360"
+              value="0"
+              class="range-bar relative z-[1] min-w-0 w-full"
+            />
+            <span
+              id="hue-val"
+              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
+              aria-hidden="true"
+            >0</span>
+          </div>
+        </div>
+        <label class="flex min-w-0 cursor-default select-none items-center gap-1.5" for="invert-toggle">
+          <span class="min-w-0 flex-1 text-white/45 uppercase">Inv</span>
+          <span class="flex min-w-0 flex-1 items-center justify-end">
+            <span
+              dir="ltr"
+              class="relative inline-block shrink-0 has-[input:focus-visible]:ring-1 has-[input:focus-visible]:ring-white/40 has-[input:focus-visible]:ring-offset-2 has-[input:focus-visible]:ring-offset-[#141314]"
+            >
+              <input
+                type="checkbox"
+                id="invert-toggle"
+                class="pixel-toggle-input absolute inset-0 z-[1] m-0 size-full cursor-default opacity-0"
+              />
+              <span class="pixel-toggle-track pointer-events-none" aria-hidden="true"></span>
+            </span>
+          </span>
         </label>
       </div>
     </section>
   </div>
 
-  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 px-3 pb-3 pt-2">
-    <button
-      id="copy-btn"
-      type="button"
-      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-    >
-      Copy
-    </button>
-    <button
-      id="save-txt-btn"
-      type="button"
-      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-    >
-      Save TXT
-    </button>
-    <button
-      id="save-png-btn"
-      type="button"
-      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-    >
-      Save PNG
-    </button>
-
-    <button
-      id="reset-filters-btn"
-      type="button"
-      class="border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
-    >
-      Reset filters
-    </button>
-
+  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 p-2.5">
     <button
       id="new-image-btn"
       type="button"
-      class="ml-auto border border-white/20 text-white/60 text-[10px] tracking-widest uppercase px-3 py-1 hover:border-white/60 hover:text-white transition-colors"
+      aria-label="New Image"
+      class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#D48B8F]/5 hover:text-[#D48B8F]"
     >
-      New Image
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4" aria-hidden="true">
+        <path
+          d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"
+        />
+      </svg>
     </button>
+
+    <div class="ml-auto flex shrink-0 items-center gap-2.5">
+      <button
+        id="copy-btn"
+        type="button"
+        aria-label="Copy"
+        class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#D48B8F]/5 hover:text-[#D48B8F]"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4" aria-hidden="true">
+          <path
+            d="M20 22H8v-2h12v2ZM8 20H6v-2H4v-2h2V8h2v12Zm14 0h-2V8h2v12ZM4 16H2V4h2v12ZM18 6h2v2H8V6h8V4h2v2Zm-2-2H4V2h12v2Z"
+          />
+        </svg>
+      </button>
+      <div id="save-dropdown" class="relative shrink-0">
+        <button
+          type="button"
+          id="save-menu-btn"
+          aria-label="Save"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-controls="save-menu"
+          class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#D48B8F]/5 hover:text-[#D48B8F]"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0" aria-hidden="true">
+            <path d="M8 3h8v2H8zm0 4h8v2H8z" />
+            <path
+              d="M8 7h2v6H8zm-5 4h5v2H3zm0 2h2v2H3zm2 2h2v2H5zm2 2h2v2H7zm2 2h2v2H9zm2 2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-4h2v4h-2zm-3 0h3v2h-3zm-2-4h2v6h-2z"
+            />
+          </svg>
+        </button>
+        <div
+          id="save-menu"
+          role="menu"
+          aria-labelledby="save-menu-btn"
+          class="absolute left-0 top-full z-50 mt-1 hidden min-w-[7.5rem] flex-col border border-white/20 bg-[#171617] py-0.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+        >
+          <button
+            id="save-txt-btn"
+            type="button"
+            role="menuitem"
+            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Save as TXT
+          </button>
+          <button
+            id="save-png-btn"
+            type="button"
+            role="menuitem"
+            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            Save as PNG
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

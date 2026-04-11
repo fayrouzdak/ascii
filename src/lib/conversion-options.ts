@@ -20,12 +20,13 @@ export type TonePalette =
   | 'math';
 
 export interface ConversionOptions {
+  /** Characters wide (grid columns), 1–100 */
   outputCols: number;
   /** Additive brightness after contrast, roughly -127…127 */
   brightness: number;
   /** Centered contrast, roughly -127…127 (CodePen-style) */
   contrast: number;
-  /** 0–200 (%), 100 = unchanged */
+  /** 0–100 (%), 100 = unchanged */
   saturation: number;
   /** Degrees 0–360 */
   hue: number;
@@ -38,7 +39,7 @@ export interface ConversionOptions {
   /** Used when `charMode === 'shaded'` */
   tonePalette: TonePalette;
   ignoreWhite: boolean;
-  /** Display zoom 50–200 (%) */
+  /** Display zoom 1–100 (%) */
   zoom: number;
   /** Hex color for ASCII characters (canvas / PNG text; canvas background matches page) */
   pictureForeground: string;
@@ -57,5 +58,5 @@ export const defaultConversionOptions = (): ConversionOptions => ({
   tonePalette: 'fine-detail',
   ignoreWhite: false,
   zoom: 100,
-  pictureForeground: '#eeeeee',
+  pictureForeground: '#8b91d4',
 });

@@ -46,7 +46,7 @@ export function convertImageToAscii(
   const ramp = buildLevelsFromGradient(gradientRaw, GRADIENT_LEVELS);
   const nLevels = ramp.length;
 
-  const cols = Math.max(16, Math.min(320, options.outputCols));
+  const cols = Math.max(1, Math.min(100, options.outputCols));
   const rows = Math.max(8, Math.round((img.naturalHeight / img.naturalWidth) * cols * FONT_ASPECT));
 
   const gap = 0;
