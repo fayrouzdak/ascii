@@ -76,35 +76,11 @@ function lum(pixels, bpp, i) {
 const buf = fs.readFileSync(process.argv[2]);
 const { w, h, pixels, bpp } = decodePng(buf);
 
-const win = 96;
-const xMin = 80,
-  yMin = 60;
-let best = -1,
-  bx = 0,
-  by = 0;
-for (let y0 = yMin; y0 + win <= h - 40; y0 += 4) {
-  for (let x0 = xMin; x0 + win <= w - 40; x0 += 4) {
-    let sum = 0,
-      sum2 = 0,
-      n = 0;
-    for (let dy = 0; dy < win; dy++) {
-      for (let dx = 0; dx < win; dx++) {
-        const L = lum(pixels, bpp, (y0 + dy) * w + (x0 + dx));
-        sum += L;
-        sum2 += L * L;
-        n++;
-      }
-    }
-    const mean = sum / n;
-    const varL = sum2 / n - mean * mean;
-    if (varL > best) {
-      best = varL;
-      bx = x0;
-      by = y0;
-    }
-  }
-}
-console.error("best window", bx, by, win, "var", best);
+// Tuned to frame the small camera+flash glyph in the upload dropzone (screenshot)
+const win = 84;
+const bx = 292;
+const by = 168;
+console.error("fixed window", bx, by, win);
 
 const minX = bx,
   minY = by,
@@ -112,7 +88,7 @@ const minX = bx,
   maxY = by + win - 1;
 const bw = maxX - minX + 1;
 const bh = maxY - minY + 1;
-const scale = 3; // 90/30 = 3
+const scale = 3; // 96 / 32 = 3
 const gw = Math.floor(bw / scale);
 const gh = Math.floor(bh / scale);
 
