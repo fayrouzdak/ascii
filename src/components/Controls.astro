@@ -5,11 +5,11 @@ interface Props {
 const { class: className } = Astro.props;
 
 const asciiCharColors: { hex: string; label: string }[] = [
+  { hex: '#a8a9b0', label: 'Grey' },
   { hex: '#8b91d4', label: 'Blue lavender' },
-  { hex: '#95bd9b', label: 'Sage' },
   { hex: '#bc8bd4', label: 'Lilac' },
+  { hex: '#95bd9b', label: 'Sage' },
   { hex: '#cecda3', label: 'Olive' },
-  { hex: '#d29c88', label: 'Terracotta' },
   { hex: '#d48b8f', label: 'Rose' },
 ];
 const asciiCharColorDefault = asciiCharColors[0].hex;
@@ -24,14 +24,14 @@ const asciiColorSwatchBtnClass =
     className,
   ]}
 >
-  <div id="controls-scroll" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3 text-[15px]">
+  <div id="controls-scroll" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-[12px] text-[15px]">
     <!-- Blur / sharpen -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Detail</h2>
+      <h2 class="text-[12px] font-normal uppercase text-white/30">Image detail</h2>
       <div class="flex flex-col gap-y-2">
         <div class="flex min-w-0 items-center gap-1.5">
           <input type="hidden" id="ascii-color" value={asciiCharColorDefault} aria-labelledby="ascii-color-label" />
-          <span id="ascii-color-label" class="min-w-0 flex-1 text-white/45 uppercase">color</span>
+          <span id="ascii-color-label" class="min-w-0 flex-1 text-white/70 uppercase">Character color</span>
           <div
             class="flex shrink-0 flex-nowrap items-center justify-end gap-2.5"
             role="group"
@@ -56,25 +56,25 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="zoom-slider" class="min-w-0 flex-1 text-white/45 uppercase">Zoom</label>
+          <label for="zoom-slider" class="min-w-0 flex-1 text-white/70 uppercase">View zoom</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
               id="zoom-slider"
-              min="1"
+              min="-100"
               max="100"
-              value="100"
+              value="0"
               class="range-bar relative z-[1] min-w-0 w-full"
             />
             <span
               id="zoom-value"
               class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
               aria-hidden="true"
-            >100</span>
+            >0</span>
           </div>
         </div>
         <div class="flex w-full min-w-0 flex-row items-center gap-1.5">
-          <label for="output-cols" class="min-w-0 flex-1 text-white/45 uppercase" title="Characters wide">Chars</label>
+          <label for="output-cols" class="min-w-0 flex-1 text-white/70 uppercase" title="How many characters wide the ASCII output is">Output columns</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -92,7 +92,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="blur" class="min-w-0 flex-1 text-white/45 uppercase">Blur</label>
+          <label for="blur" class="min-w-0 flex-1 text-white/70 uppercase">Source blur</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -111,7 +111,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="sharpness" class="min-w-0 flex-1 text-white/45 uppercase">Sharp</label>
+          <label for="sharpness" class="min-w-0 flex-1 text-white/70 uppercase">Sharpening</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -129,7 +129,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="size-depth-slider" class="min-w-0 flex-1 text-white/45 uppercase">Size Depth</label>
+          <label for="size-depth-slider" class="min-w-0 flex-1 text-white/70 uppercase">Size &amp; depth</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -147,7 +147,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <label class="flex min-w-0 cursor-default select-none items-center gap-1.5" for="ignore-white-toggle">
-          <span class="min-w-0 flex-1 text-white/45 uppercase">Ignore White</span>
+          <span class="min-w-0 flex-1 text-white/70 uppercase">Ignore white pixels</span>
           <span class="flex min-w-0 flex-1 items-center justify-end">
             <span
               dir="ltr"
@@ -167,9 +167,9 @@ const asciiColorSwatchBtnClass =
 
     <!-- Character style (custom list opens below; native select is hidden for state) -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Style</h2>
+      <h2 class="text-[12px] font-normal uppercase text-white/30">Character style</h2>
       <div class="flex min-w-0 items-center gap-1.5">
-        <label for="style-select-trigger" class="min-w-0 flex-1 text-white/45">Mode</label>
+        <label for="style-select-trigger" class="min-w-0 flex-1 text-white/70">Style preset</label>
         <div id="style-select-dropdown" class="relative min-w-0 flex-1">
           <select id="style-select" class="hidden" tabindex="-1" aria-hidden="true">
             <option value="shaded:fine-detail" selected>Fine detail</option>
@@ -191,24 +191,24 @@ const asciiColorSwatchBtnClass =
             aria-controls="style-select-menu"
           >
             <span id="style-select-current" class="min-w-0 truncate leading-none uppercase">Fine detail</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0 opacity-60" aria-hidden="true">
-              <path d="M7 10l5 5 5-5H7z" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0 text-white/40" aria-hidden="true">
+              <path d="M13 16h-2v-2h2v2Zm-2-2H9v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H7v-2h2v2Zm8 0h-2v-2h2v2ZM7 10H5V8h2v2Zm12 0h-2V8h2v2Z" />
             </svg>
           </button>
           <div
             id="style-select-menu"
             role="listbox"
-            class="fixed z-[100] hidden border border-white/5 bg-[#171617] py-1 font-normal uppercase [font-variant:normal]"
+            class="fixed z-[100] hidden border border-white/5 bg-[#171617] font-normal uppercase [font-variant:normal]"
             aria-label="Character style preset"
           >
-            <button type="button" role="option" data-value="shaded:fine-detail" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Fine detail</button>
-            <button type="button" role="option" data-value="shaded:block-shades" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Block shades</button>
-            <button type="button" role="option" data-value="shaded:binary" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Binary</button>
-            <button type="button" role="option" data-value="shaded:dos-glyphs" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">DOS &amp; box</button>
-            <button type="button" role="option" data-value="shaded:math" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Math &amp; science</button>
-            <button type="button" role="option" data-value="random" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Random</button>
-            <button type="button" role="option" data-value="cross" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Crosses</button>
-            <button type="button" role="option" data-value="dots" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-white/10 hover:text-white">Dots</button>
+            <button type="button" role="option" data-value="shaded:fine-detail" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Fine detail</button>
+            <button type="button" role="option" data-value="shaded:block-shades" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Block shades</button>
+            <button type="button" role="option" data-value="shaded:binary" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Binary</button>
+            <button type="button" role="option" data-value="shaded:dos-glyphs" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">DOS &amp; box</button>
+            <button type="button" role="option" data-value="shaded:math" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Math &amp; science</button>
+            <button type="button" role="option" data-value="random" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Random</button>
+            <button type="button" role="option" data-value="cross" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Crosses</button>
+            <button type="button" role="option" data-value="dots" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Dots</button>
           </div>
         </div>
       </div>
@@ -216,10 +216,10 @@ const asciiColorSwatchBtnClass =
 
     <!-- Color grading -->
     <section class="flex flex-col gap-y-2">
-      <h2 class="border-b border-white/10 pb-1 text-[15px] font-normal uppercase text-white/35">Color</h2>
+      <h2 class="text-[12px] font-normal uppercase text-white/30">Color &amp; tone</h2>
       <div class="flex flex-col gap-y-2">
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="brightness" class="min-w-0 flex-1 text-white/45 uppercase">Bri</label>
+          <label for="brightness" class="min-w-0 flex-1 text-white/70 uppercase">Brightness</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -237,7 +237,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="contrast" class="min-w-0 flex-1 text-white/45 uppercase">Con</label>
+          <label for="contrast" class="min-w-0 flex-1 text-white/70 uppercase">Contrast</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -255,7 +255,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="saturation" class="min-w-0 flex-1 text-white/45 uppercase">Sat</label>
+          <label for="saturation" class="min-w-0 flex-1 text-white/70 uppercase">Saturation</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -273,7 +273,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <div class="flex min-w-0 items-center gap-1.5">
-          <label for="hue" class="min-w-0 flex-1 text-white/45 uppercase">Hue</label>
+          <label for="hue" class="min-w-0 flex-1 text-white/70 uppercase">Hue shift</label>
           <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
             <input
               type="range"
@@ -291,7 +291,7 @@ const asciiColorSwatchBtnClass =
           </div>
         </div>
         <label class="flex min-w-0 cursor-default select-none items-center gap-1.5" for="invert-toggle">
-          <span class="min-w-0 flex-1 text-white/45 uppercase">Inv</span>
+          <span class="min-w-0 flex-1 text-white/70 uppercase">Invert colors</span>
           <span class="flex min-w-0 flex-1 items-center justify-end">
             <span
               dir="ltr"
@@ -310,7 +310,7 @@ const asciiColorSwatchBtnClass =
     </section>
   </div>
 
-  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 p-2.5">
+  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 p-[12px]">
     <button
       id="new-image-btn"
       type="button"
@@ -358,13 +358,13 @@ const asciiColorSwatchBtnClass =
           id="save-menu"
           role="menu"
           aria-labelledby="save-menu-btn"
-          class="absolute left-0 top-full z-50 mt-1 hidden min-w-[7.5rem] flex-col border border-white/20 bg-[#171617] py-0.5 shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+          class="absolute right-0 top-full z-50 mt-[8px] hidden min-w-[7.5rem] flex-col border border-white/5 bg-[#171617] text-white"
         >
           <button
             id="save-txt-btn"
             type="button"
             role="menuitem"
-            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
           >
             Save as TXT
           </button>
@@ -372,7 +372,7 @@ const asciiColorSwatchBtnClass =
             id="save-png-btn"
             type="button"
             role="menuitem"
-            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
           >
             Save as PNG
           </button>

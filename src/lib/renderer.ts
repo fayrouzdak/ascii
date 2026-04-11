@@ -25,8 +25,14 @@ export class AsciiRenderer {
     this.redraw();
   }
 
-  setDisplayZoom(zoomPercent: number) {
-    this.displayZoom = Math.max(0.01, Math.min(1, zoomPercent / 100));
+  /** @param bias −100 (min zoom) … 0 (100% scale) … +100 (max zoom in) */
+  setDisplayZoom(bias: number) {
+    const z = Math.max(-100, Math.min(100, bias));
+    if (z <= 0) {
+      this.displayZoom = 0.01 + ((z + 100) / 100) * 0.99;
+    } else {
+      this.displayZoom = 1 + (z / 100) * 1;
+    }
   }
 
   getText(): string {

@@ -39,7 +39,7 @@ export interface ConversionOptions {
   /** Used when `charMode === 'shaded'` */
   tonePalette: TonePalette;
   ignoreWhite: boolean;
-  /** Display zoom 1–100 (%) */
+  /** Display zoom bias −100…+100; 0 = 100% scale */
   zoom: number;
   /** Hex color for ASCII characters (canvas / PNG text; canvas background matches page) */
   pictureForeground: string;
@@ -57,6 +57,6 @@ export const defaultConversionOptions = (): ConversionOptions => ({
   charMode: 'shaded',
   tonePalette: 'fine-detail',
   ignoreWhite: false,
-  zoom: 100,
-  pictureForeground: '#8b91d4',
+  zoom: 0,
+  pictureForeground: '#a8a9b0',
 });

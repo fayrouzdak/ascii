@@ -49,7 +49,7 @@
     });
     if (!matched && asciiColorPresetButtons.length > 0) {
       const first = asciiColorPresetButtons[0];
-      const fallback = first.dataset.asciiColor ?? '#8b91d4';
+      const fallback = first.dataset.asciiColor ?? '#a8a9b0';
       asciiColor.value = fallback;
       asciiColorPresetButtons.forEach((b, i) => {
         b.setAttribute('aria-pressed', String(i === 0));
@@ -79,6 +79,18 @@
   const styleSelectDropdown = document.getElementById('style-select-dropdown') as HTMLDivElement | null;
   const styleSelectCurrent = document.getElementById('style-select-current') as HTMLSpanElement | null;
   const controlsScroll = document.getElementById('controls-scroll') as HTMLElement | null;
+  let controlsScrollHideBarTimer: ReturnType<typeof setTimeout> | null = null;
+  const CONTROLS_SCROLLBAR_VISIBLE_MS = 900;
+
+  function flashControlsScrollbar() {
+    if (!controlsScroll) return;
+    controlsScroll.classList.add('scrollbar-active');
+    if (controlsScrollHideBarTimer !== null) clearTimeout(controlsScrollHideBarTimer);
+    controlsScrollHideBarTimer = window.setTimeout(() => {
+      controlsScrollHideBarTimer = null;
+      controlsScroll.classList.remove('scrollbar-active');
+    }, CONTROLS_SCROLLBAR_VISIBLE_MS);
+  }
 
   const SHADED_PREFIX = 'shaded:' as const;
 
@@ -368,12 +380,15 @@
     window.addEventListener('resize', () => {
       if (styleSelectTrigger.getAttribute('aria-expanded') === 'true') positionStyleMenu();
     });
+  }
 
-    if (controlsScroll) {
-      controlsScroll.addEventListener('scroll', () => {
-        if (styleSelectTrigger.getAttribute('aria-expanded') === 'true') closeStyleMenu();
-      });
-    }
+  if (controlsScroll) {
+    controlsScroll.addEventListener('scroll', () => {
+      flashControlsScrollbar();
+      if (styleSelectTrigger && styleSelectTrigger.getAttribute('aria-expanded') === 'true') {
+        closeStyleMenu();
+      }
+    });
   }
 
   saveTxtBtn.addEventListener('click', () => {

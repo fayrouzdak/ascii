@@ -33,14 +33,24 @@ label {
   cursor: default;
 }
 
-/* Slim scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
+/* Controls panel: scrollbar only while scrolling (see AsciiCanvas.astro) */
+#controls-scroll {
+  scrollbar-width: none;
 }
-::-webkit-scrollbar-track {
+#controls-scroll::-webkit-scrollbar {
+  width: 0;
+}
+#controls-scroll.scrollbar-active {
+  scrollbar-width: thin;
+  scrollbar-color: #333 var(--page-bg);
+}
+#controls-scroll.scrollbar-active::-webkit-scrollbar {
+  width: 2px;
+}
+#controls-scroll.scrollbar-active::-webkit-scrollbar-track {
   background: var(--page-bg);
 }
-::-webkit-scrollbar-thumb {
+#controls-scroll.scrollbar-active::-webkit-scrollbar-thumb {
   background: #333;
 }
 
