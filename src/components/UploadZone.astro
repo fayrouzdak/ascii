@@ -14,7 +14,7 @@
   >
     <div
       id="upload-zone-icon-drag"
-      class="absolute left-[86px] top-[86px] z-[1] h-[30px] w-[30px] cursor-grab touch-none select-none active:cursor-grabbing"
+      class="absolute left-1/2 top-1/2 z-[1] h-[30px] w-[30px] -ml-[15px] -mt-[15px] cursor-grab touch-none select-none active:cursor-grabbing"
       aria-hidden="true"
     >
       <svg
@@ -87,7 +87,7 @@
     opacity: 1;
   }
 
-  /* Dim: all pixels 50% when off. Eased ramps per quarter-cycle. */
+  /* Dim: red & blue 50%; green & yellow 60%. Eased ramps per quarter-cycle. */
   @keyframes upload-pixel-red {
     0%,
     2% {
@@ -136,10 +136,10 @@
   @keyframes upload-pixel-green {
     0%,
     50% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     53% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     58% {
       opacity: 1;
@@ -149,21 +149,21 @@
       opacity: 1;
     }
     74% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     75%,
     100% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
   }
 
   @keyframes upload-pixel-yellow {
     0%,
     75% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     78% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     83% {
       opacity: 1;
@@ -173,10 +173,10 @@
       opacity: 1;
     }
     99% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
     100% {
-      opacity: 0.5;
+      opacity: 0.6;
     }
   }
 
@@ -205,12 +205,12 @@
 
     .upload-zone-panel:hover .upload-zone-pixel--green {
       animation: none;
-      opacity: 0.5;
+      opacity: 0.6;
     }
 
     .upload-zone-panel:hover .upload-zone-pixel--yellow {
       animation: none;
-      opacity: 0.5;
+      opacity: 0.6;
     }
   }
 </style>
@@ -218,24 +218,15 @@
 <script>
   const ICON = 30;
   const DRAG_THRESHOLD_PX = 4;
-  /** Matches `left-[86px]` / `top-[86px]` on `#upload-zone-icon-drag` */
-  const DRAG_ICON_LEFT = 86;
-  const DRAG_ICON_TOP = 86;
 
   function clampOffset(px: number, py: number, panel: HTMLElement): { x: number; y: number } {
     const w = panel.clientWidth;
     const h = panel.clientHeight;
-    const minX = -DRAG_ICON_LEFT;
-    const maxX = w - ICON - DRAG_ICON_LEFT;
-    const minY = -DRAG_ICON_TOP;
-    const maxY = h - ICON - DRAG_ICON_TOP;
-    const loX = Math.min(minX, maxX);
-    const hiX = Math.max(minX, maxX);
-    const loY = Math.min(minY, maxY);
-    const hiY = Math.max(minY, maxY);
+    const maxX = Math.max(0, w / 2 - ICON / 2);
+    const maxY = Math.max(0, h / 2 - ICON / 2);
     return {
-      x: Math.min(hiX, Math.max(loX, px)),
-      y: Math.min(hiY, Math.max(loY, py)),
+      x: Math.min(maxX, Math.max(-maxX, px)),
+      y: Math.min(maxY, Math.max(-maxY, py)),
     };
   }
 
