@@ -3,7 +3,7 @@ import '../styles/global.css';
 interface Props {
   title?: string;
 }
-const { title = 'ASCII Motion' } = Astro.props;
+const { title = 'ASCII' } = Astro.props;
 ---
 
 <!doctype html>
@@ -13,7 +13,7 @@ const { title = 'ASCII Motion' } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="description" content="ASCII Motion transforms images into dynamic grids of text characters, blending retro aesthetics with modern digital art." />
+    <meta name="description" content="ASCII transforms images into dynamic grids of text characters, blending retro aesthetics with modern digital art." />
     <title>{title}</title>
   </head>
   <body class="bg-[#141314] text-[15px] uppercase text-white flex h-screen min-h-0 items-center justify-center overflow-hidden">
