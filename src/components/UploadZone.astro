@@ -9,17 +9,56 @@
   aria-label="Upload image"
 >
   <!-- Dashed border overlay -->
-  <div class="group border border-white/5 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,#D48B8F_2%,#141314)]">
+  <div
+    class="upload-zone-panel group border border-white/5 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)]"
+  >
     <svg
-      class="h-[30px] w-[30px] shrink-0 select-none text-white transition-colors duration-300 group-hover:text-[#D48B8F]"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="currentColor"
+      class="h-[30px] w-[30px] shrink-0 select-none text-white/50 transition-colors duration-300 group-hover:text-white"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
       <path
-        d="M8 20h6v-2h2v2h4v2H4v-2h2v-2h2v2Zm-4 0H2V4h2v16Zm18 0h-2v-4h-2v-2h2V4h2v16Zm-12-2H8v-2h2v2Zm4 0h-2v-2h2v2Zm-2-2h-2v-2h2v2Zm4 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm-8-2H8v-2h2v2Zm-2-2H6V8h2v2Zm4 0h-2V8h2v2Zm-2-2H8V6h2v2Zm10-4H4V2h16v2Z"
+        d="M8 20H14V18H16V20H20V22H4V20H6V18H8V20ZM4 20H2V4H4V20ZM22 20H20V16H18V14H20V4H22V20ZM10 18H8V16H10V18ZM14 18H12V16H14V18ZM12 16H10V14H12V16ZM16 16H14V14H16V16ZM18 14H16V12H18V14ZM10 12H8V10H10V12ZM8 10H6V8H8V10ZM12 10H10V8H12V10ZM10 8H8V6H10V8ZM20 4H4V2H20V4Z"
+        fill="currentColor"
       />
+      <g class="upload-zone-pixels">
+        <!-- Sequence: red → blue → green → yellow (see CSS keyframes) -->
+        <rect
+          class="upload-zone-pixel upload-zone-pixel--red"
+          x="8"
+          y="6"
+          width="2"
+          height="2"
+          fill="#FF0004"
+        />
+        <rect
+          class="upload-zone-pixel upload-zone-pixel--blue"
+          x="10"
+          y="8"
+          width="2"
+          height="2"
+          fill="#1100FF"
+        />
+        <rect
+          class="upload-zone-pixel upload-zone-pixel--green"
+          x="8"
+          y="10"
+          width="2"
+          height="2"
+          fill="#00FF1E"
+        />
+        <rect
+          class="upload-zone-pixel upload-zone-pixel--yellow"
+          x="6"
+          y="8"
+          width="2"
+          height="2"
+          fill="#FFFF00"
+        />
+      </g>
     </svg>
   </div>
 
@@ -31,3 +70,96 @@
     aria-label="Upload image file"
   />
 </div>
+
+<style>
+  .upload-zone-pixels {
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+
+  .upload-zone-panel:hover .upload-zone-pixels {
+    opacity: 1;
+  }
+
+  /* Dim = 40% opacity; one pixel at full opacity per quarter of the cycle */
+  @keyframes upload-pixel-red {
+    0%,
+    24.99% {
+      opacity: 1;
+    }
+    25%,
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes upload-pixel-blue {
+    0%,
+    24.99% {
+      opacity: 0.4;
+    }
+    25%,
+    49.99% {
+      opacity: 1;
+    }
+    50%,
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes upload-pixel-green {
+    0%,
+    49.99% {
+      opacity: 0.4;
+    }
+    50%,
+    74.99% {
+      opacity: 1;
+    }
+    75%,
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes upload-pixel-yellow {
+    0%,
+    74.99% {
+      opacity: 0.4;
+    }
+    75%,
+    99.99% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.4;
+    }
+  }
+
+  .upload-zone-panel:hover .upload-zone-pixel--red {
+    animation: upload-pixel-red var(--upload-pixel-cycle, 2s) linear infinite;
+  }
+
+  .upload-zone-panel:hover .upload-zone-pixel--blue {
+    animation: upload-pixel-blue var(--upload-pixel-cycle, 2s) linear infinite;
+  }
+
+  .upload-zone-panel:hover .upload-zone-pixel--green {
+    animation: upload-pixel-green var(--upload-pixel-cycle, 2s) linear infinite;
+  }
+
+  .upload-zone-panel:hover .upload-zone-pixel--yellow {
+    animation: upload-pixel-yellow var(--upload-pixel-cycle, 2s) linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .upload-zone-panel:hover .upload-zone-pixel--red,
+    .upload-zone-panel:hover .upload-zone-pixel--blue,
+    .upload-zone-panel:hover .upload-zone-pixel--green,
+    .upload-zone-panel:hover .upload-zone-pixel--yellow {
+      animation: none;
+      opacity: 0.4;
+    }
+  }
+</style>

@@ -84,7 +84,7 @@ input[type='range']::-moz-range-thumb {
 }
 
 /*
- * Bar range — rose fill, 5% white track, white thumb.
+ * Bar range — 40% white fill, 5% white track, white thumb.
  * Thumb position: --range-thumb-pct (set in JS). Fill ends 2px before the
  * thumb’s left edge (half thumb width + 2px gap from center).
  */
@@ -94,8 +94,8 @@ input.range-bar {
   --range-thumb-w: 2px;
   --range-thumb-pad-y: 4px;
   --range-thumb-h: calc(var(--range-track-h) - var(--range-thumb-pad-y) * 2);
-  --range-salmon-offset: calc(var(--range-thumb-w) * 0.5 + 2px);
-  --range-fill: #d48b8f;
+  --range-thumb-offset: calc(var(--range-thumb-w) * 0.5 + 2px);
+  --range-fill: rgba(255, 255, 255, 0.4);
   --range-track-bg: rgba(255, 255, 255, 0.05);
   height: var(--range-track-h);
   background: var(--range-track-bg);
@@ -107,8 +107,8 @@ input.range-bar::-webkit-slider-runnable-track {
   background: linear-gradient(
     to right,
     var(--range-fill) 0%,
-    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
-    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-thumb-offset))),
+    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-thumb-offset))),
     var(--range-track-bg) 100%
   );
   border-radius: 0;
@@ -132,8 +132,8 @@ input.range-bar::-moz-range-track {
   background: linear-gradient(
     to right,
     var(--range-fill) 0%,
-    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
-    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-salmon-offset))),
+    var(--range-fill) max(0px, calc(var(--range-thumb-pct) - var(--range-thumb-offset))),
+    var(--range-track-bg) max(0px, calc(var(--range-thumb-pct) - var(--range-thumb-offset))),
     var(--range-track-bg) 100%
   );
   border-radius: 0;
@@ -155,7 +155,7 @@ input.range-bar::-moz-range-thumb {
   box-sizing: border-box;
 }
 
-/* Rectangular toggle: off = left (white), on = right (salmon); track LTR regardless of page dir */
+/* Rectangular toggle: off = left (white 40%), on = right (white); track LTR regardless of page dir */
 .pixel-toggle-track {
   --pt-w: 28px;
   --pt-h: 18px;
@@ -177,7 +177,7 @@ input.range-bar::-moz-range-thumb {
   left: var(--pt-pad);
   width: var(--pt-handle-w);
   height: calc(var(--pt-h) - 2 * var(--pt-pad));
-  background: #fff;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 0;
   transition:
     left 0.12s ease,
@@ -186,7 +186,7 @@ input.range-bar::-moz-range-thumb {
 
 input.pixel-toggle-input:checked + .pixel-toggle-track::after {
   left: var(--pt-on-left);
-  background: #d48b8f;
+  background: #fff;
 }
 
 select {
