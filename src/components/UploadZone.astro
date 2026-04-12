@@ -13,7 +13,7 @@
     class="upload-zone-panel group border border-white/5 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)]"
   >
     <svg
-      class="h-[30px] w-[30px] shrink-0 select-none text-white/50 transition-colors duration-300 group-hover:text-white"
+      class="h-[30px] w-[30px] shrink-0 select-none text-white/50 transition-colors duration-300 group-hover:text-white/90"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -48,7 +48,7 @@
           y="10"
           width="2"
           height="2"
-          fill="#00FF1E"
+          fill="#22E439"
         />
         <rect
           class="upload-zone-pixel upload-zone-pixel--yellow"
@@ -56,7 +56,7 @@
           y="8"
           width="2"
           height="2"
-          fill="#FFFF00"
+          fill="#FFC300"
         />
       </g>
     </svg>
@@ -81,85 +81,130 @@
     opacity: 1;
   }
 
-  /* Dim = 40% opacity; one pixel at full opacity per quarter of the cycle */
+  /* Dim: red & blue 50%; green & yellow 60%. Eased ramps per quarter-cycle. */
   @keyframes upload-pixel-red {
     0%,
-    24.99% {
+    2% {
+      opacity: 0.5;
+    }
+    8% {
       opacity: 1;
+    }
+    14%,
+    17% {
+      opacity: 1;
+    }
+    24% {
+      opacity: 0.5;
     }
     25%,
     100% {
-      opacity: 0.4;
+      opacity: 0.5;
     }
   }
 
   @keyframes upload-pixel-blue {
     0%,
-    24.99% {
-      opacity: 0.4;
+    25% {
+      opacity: 0.5;
     }
-    25%,
-    49.99% {
+    28% {
+      opacity: 0.5;
+    }
+    33% {
       opacity: 1;
+    }
+    39%,
+    42% {
+      opacity: 1;
+    }
+    49% {
+      opacity: 0.5;
     }
     50%,
     100% {
-      opacity: 0.4;
+      opacity: 0.5;
     }
   }
 
   @keyframes upload-pixel-green {
     0%,
-    49.99% {
-      opacity: 0.4;
+    50% {
+      opacity: 0.6;
     }
-    50%,
-    74.99% {
+    53% {
+      opacity: 0.6;
+    }
+    58% {
       opacity: 1;
+    }
+    64%,
+    67% {
+      opacity: 1;
+    }
+    74% {
+      opacity: 0.6;
     }
     75%,
     100% {
-      opacity: 0.4;
+      opacity: 0.6;
     }
   }
 
   @keyframes upload-pixel-yellow {
     0%,
-    74.99% {
-      opacity: 0.4;
+    75% {
+      opacity: 0.6;
     }
-    75%,
-    99.99% {
+    78% {
+      opacity: 0.6;
+    }
+    83% {
       opacity: 1;
     }
+    89%,
+    92% {
+      opacity: 1;
+    }
+    99% {
+      opacity: 0.6;
+    }
     100% {
-      opacity: 0.4;
+      opacity: 0.6;
     }
   }
 
   .upload-zone-panel:hover .upload-zone-pixel--red {
-    animation: upload-pixel-red var(--upload-pixel-cycle, 2s) linear infinite;
+    animation: upload-pixel-red var(--upload-pixel-cycle, 2.5s) cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
   .upload-zone-panel:hover .upload-zone-pixel--blue {
-    animation: upload-pixel-blue var(--upload-pixel-cycle, 2s) linear infinite;
+    animation: upload-pixel-blue var(--upload-pixel-cycle, 2.5s) cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
   .upload-zone-panel:hover .upload-zone-pixel--green {
-    animation: upload-pixel-green var(--upload-pixel-cycle, 2s) linear infinite;
+    animation: upload-pixel-green var(--upload-pixel-cycle, 2.5s) cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
   .upload-zone-panel:hover .upload-zone-pixel--yellow {
-    animation: upload-pixel-yellow var(--upload-pixel-cycle, 2s) linear infinite;
+    animation: upload-pixel-yellow var(--upload-pixel-cycle, 2.5s) cubic-bezier(0.45, 0, 0.55, 1) infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .upload-zone-panel:hover .upload-zone-pixel--red,
-    .upload-zone-panel:hover .upload-zone-pixel--blue,
-    .upload-zone-panel:hover .upload-zone-pixel--green,
+    .upload-zone-panel:hover .upload-zone-pixel--blue {
+      animation: none;
+      opacity: 0.5;
+    }
+
+    .upload-zone-panel:hover .upload-zone-pixel--green {
+      animation: none;
+      opacity: 0.6;
+    }
+
     .upload-zone-panel:hover .upload-zone-pixel--yellow {
       animation: none;
-      opacity: 0.4;
+      opacity: 0.6;
     }
   }
 </style>
