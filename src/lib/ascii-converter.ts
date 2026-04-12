@@ -9,6 +9,12 @@ const GRADIENT_LEVELS = 16;
 
 const RANDOM_CHARS = '!@#$%&*+=?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
+/** Stable glyph per cell so animated sources (e.g. GIF) do not flicker on each resample. */
+function stableRandomChar(col: number, row: number): string {
+  const h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663) ^ Math.imul(col * row, 83492791)) >>> 0;
+  return RANDOM_CHARS[h % RANDOM_CHARS.length]!;
+}
+
 /** Scale hex foreground by brightness for non-shaded char modes */
 function foregroundAtBrightness(hex: string, brightness: number): string {
   const n = hex.replace('#', '').trim();
@@ -34,8 +40,14 @@ function buildCharGridFromAscii(ascii: string, cols: number, rows: number): stri
   return grid;
 }
 
+export interface ImageSource {
+  drawable: CanvasImageSource;
+  width: number;
+  height: number;
+}
+
 export function convertImageToAscii(
-  img: HTMLImageElement,
+  src: ImageSource,
   canvasWidth: number,
   canvasHeight: number,
   options: ConversionOptions,
@@ -47,7 +59,7 @@ export function convertImageToAscii(
   const nLevels = ramp.length;
 
   const cols = Math.max(1, Math.min(100, options.outputCols));
-  const rows = Math.max(8, Math.round((img.naturalHeight / img.naturalWidth) * cols * FONT_ASPECT));
+  const rows = Math.max(8, Math.round((src.height / src.width) * cols * FONT_ASPECT));
 
   const gap = 0;
   const totalGapW = gap * Math.max(0, cols - 1);
@@ -78,7 +90,7 @@ export function convertImageToAscii(
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, cols, rows);
   ctx.filter = options.blur > 0 ? `blur(${options.blur}px)` : 'none';
-  ctx.drawImage(img, 0, 0, cols, rows);
+  ctx.drawImage(src.drawable, 0, 0, cols, rows);
 
   const imageData = ctx.getImageData(0, 0, cols, rows);
   const data = imageData.data;
@@ -145,7 +157,7 @@ export function convertImageToAscii(
       } else if (charMode === 'cross') {
         ch = 'x';
       } else {
-        ch = RANDOM_CHARS[Math.floor(Math.random() * RANDOM_CHARS.length)]!;
+        ch = stableRandomChar(col, row);
       }
 
       const targetX = offsetX + col * (cellWidth + gap);
