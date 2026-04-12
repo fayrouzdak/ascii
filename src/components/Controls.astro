@@ -20,11 +20,14 @@ const asciiColorSwatchBtnClass =
 <div
   id="controls"
   class:list={[
-    'flex h-full max-h-[min(50vh,22rem)] min-h-0 w-full shrink-0 flex-col border-t border-white/10 bg-[#171617] text-white md:max-h-none md:w-[min(100%,430px)] md:border-t-0',
+    'flex min-h-0 w-full shrink-0 flex-col bg-[#171617] text-white max-md:h-auto md:h-full md:w-[min(100%,430px)]',
     className,
   ]}
 >
-  <div id="controls-scroll" class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-[12px] text-[15px]">
+  <div
+    id="controls-scroll"
+    class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-visible p-[12px] text-[15px] md:overflow-y-auto"
+  >
     <!-- Blur / sharpen -->
     <section class="flex flex-col gap-y-2">
       <h2 class="text-[12px] font-normal uppercase text-white/30">Image detail</h2>

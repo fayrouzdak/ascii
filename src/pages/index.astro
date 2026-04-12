@@ -6,8 +6,12 @@ import Controls from '../components/Controls.astro';
 ---
 
 <Layout title="ASCII">
-  <div class="flex h-[600px] max-h-[min(600px,100vh)] w-[950px] max-w-[min(950px,100vw)] min-h-0 flex-col items-center justify-center gap-[18px] md:flex-row">
-    <section class="flex min-h-0 min-w-0 flex-1 flex-col self-stretch md:min-h-0">
+  <div
+    class="flex min-h-0 w-[950px] max-w-[min(950px,100vw)] flex-col items-center justify-center gap-[18px] px-5 max-md:h-auto max-md:max-h-none md:h-[min(600px,calc(100dvh_-_var(--layout-pad-y)))] md:min-h-0 lg:px-0 md:flex-row"
+  >
+    <section
+      class="flex min-h-0 min-w-0 flex-col self-stretch max-md:aspect-square max-md:w-full max-md:flex-none md:min-h-0 md:flex-1"
+    >
       <AsciiCanvas>
         <UploadZone />
       </AsciiCanvas>

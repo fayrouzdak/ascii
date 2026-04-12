@@ -4,6 +4,10 @@
 :root {
   color-scheme: dark;
   --page-bg: #141314;
+  /* Must match body vertical padding in Layout.astro (safe area + minimum 40px inset). */
+  --layout-pad-y: calc(
+    max(40px, env(safe-area-inset-top, 0px)) + max(40px, env(safe-area-inset-bottom, 0px))
+  );
 }
 
 * {
@@ -13,14 +17,22 @@
 html,
 body {
   margin: 0;
-  padding: 0;
   background: var(--page-bg);
   color: #fff;
   font-family: 'VT323', monospace;
   font-size: 15px;
   letter-spacing: 0.5px;
-  height: 100%;
   cursor: default;
+}
+
+html {
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  min-height: 100dvh;
 }
 
 /* Regular arrow cursor for interactive elements (Tailwind preflight uses pointer on buttons) */

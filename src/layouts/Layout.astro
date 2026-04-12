@@ -11,12 +11,14 @@ const { title = 'ASCII' } = Astro.props;
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content="ASCII transforms images into dynamic grids of text characters, blending retro aesthetics with modern digital art." />
     <title>{title}</title>
   </head>
-  <body class="bg-[#141314] text-[15px] uppercase text-white flex h-screen min-h-0 items-center justify-center overflow-hidden">
+  <body
+    class="box-border flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto bg-[#141314] pb-[max(40px,env(safe-area-inset-bottom,0px))] pt-[max(40px,env(safe-area-inset-top,0px))] text-[15px] uppercase text-white"
+  >
     <slot />
   </body>
 </html>
