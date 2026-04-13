@@ -19,6 +19,12 @@ const LINE_HEIGHT_MULT = 1.15;
 export type AsciiExportCanvasOpts = {
   pictureForeground: string;
   scale?: number;
+  /** Per-cell luminance (0–255, row-major). When provided, each character is
+   *  drawn with its brightness-scaled foreground color so non-shaded char modes
+   *  (cross, random, binary, dots) export with visible contrast. */
+  cellBrightness?: Float32Array;
+  /** Grid columns – required when cellBrightness is set. */
+  cols?: number;
 };
 
 /** Rasterize ASCII text to a canvas; shared by PNG and animated GIF export. */
@@ -56,8 +62,25 @@ export function createAsciiExportCanvas(text: string, opts: AsciiExportCanvasOpt
   ctx.textBaseline = 'top';
   ctx.fillStyle = opts.pictureForeground;
 
-  for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i]!, 0, i * lineHeight);
+  if (opts.cellBrightness && opts.cols) {
+    const bri = opts.cellBrightness;
+    const gridCols = opts.cols;
+    const charW = ctx.measureText('M').width;
+    const [fR, fG, fB] = parseHexColor(opts.pictureForeground);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]!;
+      for (let c = 0; c < line.length; c++) {
+        if (line[c] === ' ') continue;
+        const b = (bri[i * gridCols + c] ?? 255) / 255;
+        const f = Math.pow(Math.max(0, Math.min(1, b)), 0.7);
+        ctx.fillStyle = `rgb(${Math.round(fR * f)},${Math.round(fG * f)},${Math.round(fB * f)})`;
+        ctx.fillText(line[c]!, c * charW, i * lineHeight);
+      }
+    }
+  } else {
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i]!, 0, i * lineHeight);
+    }
   }
 
   return off;
@@ -90,43 +113,88 @@ function parseHexColor(hex: string): [number, number, number] {
 
 /**
  * Encode canvases as an animated GIF with a transparent background.
- * Uses a crisp 2-color palette (foreground + transparent) with alpha
- * thresholding so text edges are sharp rather than blurry.
+ *
+ * When `brightnessPalette` is true a 32-entry palette of brightness-scaled
+ * foreground colors is used so non-shaded char modes (cross, random, …) keep
+ * their per-character brightness gradient.  Otherwise a crisp 2-color palette
+ * (foreground + transparent) is used for shaded mode.
  */
 export function encodeAsciiCanvasesToGif(
   frames: { canvas: HTMLCanvasElement; delayMs: number }[],
   foregroundHex: string,
+  brightnessPalette = false,
 ): Uint8Array {
   if (frames.length === 0) return new Uint8Array();
 
   const [fr, fg, fb] = parseHexColor(foregroundHex);
-  const palette = [[fr, fg, fb], [0, 0, 0]];
-  const TRANSPARENT_IDX = 1;
   const ALPHA_THRESHOLD = 80;
-
   const gif = GIFEncoder();
 
-  for (let i = 0; i < frames.length; i++) {
-    const { canvas, delayMs } = frames[i]!;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) continue;
-    const { width, height } = canvas;
-    const rgba = ctx.getImageData(0, 0, width, height).data;
-    const pixelCount = width * height;
-    const index = new Uint8Array(pixelCount);
-
-    for (let p = 0; p < pixelCount; p++) {
-      index[p] = rgba[p * 4 + 3]! > ALPHA_THRESHOLD ? 0 : TRANSPARENT_IDX;
+  if (brightnessPalette) {
+    const LEVELS = 31;
+    const TRANSPARENT_IDX = 0;
+    const palette: number[][] = [[0, 0, 0]];
+    for (let i = 1; i <= LEVELS; i++) {
+      const t = i / LEVELS;
+      palette.push([Math.round(fr * t), Math.round(fg * t), Math.round(fb * t)]);
     }
+    const fgLum = 0.299 * fr + 0.587 * fg + 0.114 * fb;
 
-    gif.writeFrame(index, width, height, {
-      palette,
-      delay: delayMs,
-      repeat: i === 0 ? 0 : undefined,
-      transparent: true,
-      transparentIndex: TRANSPARENT_IDX,
-      dispose: 2,
-    });
+    for (let i = 0; i < frames.length; i++) {
+      const { canvas, delayMs } = frames[i]!;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+      const { width, height } = canvas;
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const pixelCount = width * height;
+      const index = new Uint8Array(pixelCount);
+
+      for (let p = 0; p < pixelCount; p++) {
+        if (rgba[p * 4 + 3]! <= ALPHA_THRESHOLD) {
+          index[p] = TRANSPARENT_IDX;
+        } else {
+          const lum =
+            0.299 * rgba[p * 4]! + 0.587 * rgba[p * 4 + 1]! + 0.114 * rgba[p * 4 + 2]!;
+          const ratio = fgLum > 0 ? Math.min(1, lum / fgLum) : 0;
+          index[p] = Math.max(1, Math.min(LEVELS, Math.round(ratio * LEVELS)));
+        }
+      }
+
+      gif.writeFrame(index, width, height, {
+        palette,
+        delay: delayMs,
+        repeat: i === 0 ? 0 : undefined,
+        transparent: true,
+        transparentIndex: TRANSPARENT_IDX,
+        dispose: 2,
+      });
+    }
+  } else {
+    const palette = [[fr, fg, fb], [0, 0, 0]];
+    const TRANSPARENT_IDX = 1;
+
+    for (let i = 0; i < frames.length; i++) {
+      const { canvas, delayMs } = frames[i]!;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+      const { width, height } = canvas;
+      const rgba = ctx.getImageData(0, 0, width, height).data;
+      const pixelCount = width * height;
+      const index = new Uint8Array(pixelCount);
+
+      for (let p = 0; p < pixelCount; p++) {
+        index[p] = rgba[p * 4 + 3]! > ALPHA_THRESHOLD ? 0 : TRANSPARENT_IDX;
+      }
+
+      gif.writeFrame(index, width, height, {
+        palette,
+        delay: delayMs,
+        repeat: i === 0 ? 0 : undefined,
+        transparent: true,
+        transparentIndex: TRANSPARENT_IDX,
+        dispose: 2,
+      });
+    }
   }
 
   gif.finish();
@@ -170,6 +238,8 @@ export async function downloadAsciiSvg(
   text: string,
   opts: {
     pictureForeground: string;
+    cellBrightness?: Float32Array;
+    cols?: number;
   },
 ): Promise<void> {
   const trimmed = text.trimEnd();
@@ -192,12 +262,62 @@ export async function downloadAsciiSvg(
   const svgWidth = Math.ceil(maxWidth);
   const svgHeight = Math.ceil(lines.length * lineHeight);
 
-  const tspans = lines
-    .map((line, i) => {
-      const y = fontSize + i * lineHeight;
-      return `<tspan x="0" y="${y}">${escapeXml(line) || ' '}</tspan>`;
-    })
-    .join('\n    ');
+  const bri = opts.cellBrightness;
+  const gridCols = opts.cols ?? 0;
+  const hasBrightness = bri && gridCols > 0;
+
+  let tspans: string;
+  if (hasBrightness) {
+    const [fR, fG, fB] = parseHexColor(opts.pictureForeground);
+    const Q = 32;
+    const colorForBrightness = (b: number): string => {
+      const q = Math.round(Math.max(0, Math.min(1, b)) * Q) / Q;
+      const f = Math.pow(q, 0.7);
+      const cr = Math.round(fR * f).toString(16).padStart(2, '0');
+      const cg = Math.round(fG * f).toString(16).padStart(2, '0');
+      const cb = Math.round(fB * f).toString(16).padStart(2, '0');
+      return `#${cr}${cg}${cb}`;
+    };
+
+    const rowSpans: string[] = [];
+    for (let row = 0; row < lines.length; row++) {
+      const line = lines[row]!;
+      const y = fontSize + row * lineHeight;
+      if (!line) {
+        rowSpans.push(`<tspan x="0" y="${y}"> </tspan>`);
+        continue;
+      }
+      let i = 0;
+      let first = true;
+      while (i < line.length) {
+        const b0 = (bri![row * gridCols + i] ?? 255) / 255;
+        const col = colorForBrightness(b0);
+        let chunk = '';
+        let j = i;
+        while (j < line.length) {
+          const bj = (bri![row * gridCols + j] ?? 255) / 255;
+          if (colorForBrightness(bj) !== col) break;
+          chunk += line[j]!;
+          j++;
+        }
+        if (first) {
+          rowSpans.push(`<tspan x="0" y="${y}" fill="${col}">${escapeXml(chunk)}</tspan>`);
+          first = false;
+        } else {
+          rowSpans.push(`<tspan fill="${col}">${escapeXml(chunk)}</tspan>`);
+        }
+        i = j;
+      }
+    }
+    tspans = rowSpans.join('\n    ');
+  } else {
+    tspans = lines
+      .map((line, i) => {
+        const y = fontSize + i * lineHeight;
+        return `<tspan x="0" y="${y}">${escapeXml(line) || ' '}</tspan>`;
+      })
+      .join('\n    ');
+  }
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgWidth} ${svgHeight}">
   <defs>

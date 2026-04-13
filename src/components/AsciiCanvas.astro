@@ -989,6 +989,9 @@ import Controls from './Controls.astro';
     conv = readOptionsFromDom();
     downloadAsciiPng(text, {
       pictureForeground: conv.pictureForeground,
+      ...(conv.charMode !== 'shaded' && cachedAnalysis
+        ? { cellBrightness: cachedAnalysis.gray, cols: cachedAnalysis.cols }
+        : {}),
     });
     closeSaveMenu();
   });
@@ -1000,6 +1003,9 @@ import Controls from './Controls.astro';
     closeSaveMenu();
     await downloadAsciiSvg(text, {
       pictureForeground: conv.pictureForeground,
+      ...(conv.charMode !== 'shaded' && cachedAnalysis
+        ? { cellBrightness: cachedAnalysis.gray, cols: cachedAnalysis.cols }
+        : {}),
     });
   });
 
@@ -1021,6 +1027,7 @@ import Controls from './Controls.astro';
       conv = readOptionsFromDom();
       const scale = 4;
       const pictureForeground = conv.pictureForeground;
+      const needsBrightness = conv.charMode !== 'shaded';
       const frames: { canvas: HTMLCanvasElement; delayMs: number }[] = [];
 
       if (framePlayer) {
@@ -1040,7 +1047,14 @@ import Controls from './Controls.astro';
           cachedAnalysisSource = null;
           rebuildGrid();
           const text = renderer.getText();
-          const canvas = createAsciiExportCanvas(text, { pictureForeground, scale });
+          const a1 = cachedAnalysis as AsciiAnalysis | null;
+          const canvas = createAsciiExportCanvas(text, {
+            pictureForeground,
+            scale,
+            ...(needsBrightness && a1
+              ? { cellBrightness: a1.gray, cols: a1.cols }
+              : {}),
+          });
           if (!canvas) continue;
           frames.push({ canvas, delayMs: delays[i]! });
         }
@@ -1069,14 +1083,21 @@ import Controls from './Controls.astro';
           cachedAnalysisSource = null;
           rebuildGrid();
           const text = renderer.getText();
-          const canvas = createAsciiExportCanvas(text, { pictureForeground, scale });
+          const a2 = cachedAnalysis as AsciiAnalysis | null;
+          const canvas = createAsciiExportCanvas(text, {
+            pictureForeground,
+            scale,
+            ...(needsBrightness && a2
+              ? { cellBrightness: a2.gray, cols: a2.cols }
+              : {}),
+          });
           if (!canvas) continue;
           frames.push({ canvas, delayMs });
         }
       }
 
       if (frames.length === 0) return;
-      const bytes = encodeAsciiCanvasesToGif(frames, pictureForeground);
+      const bytes = encodeAsciiCanvasesToGif(frames, pictureForeground, needsBrightness);
       downloadGifBytes(bytes);
     } finally {
       saveGifBtn.disabled = false;
