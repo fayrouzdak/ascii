@@ -53,7 +53,7 @@
             y="10"
             width="2"
             height="2"
-            fill="#22E439"
+            fill="#24D1B2"
           />
           <rect
             class="upload-zone-pixel upload-zone-pixel--yellow"
@@ -61,7 +61,7 @@
             y="8"
             width="2"
             height="2"
-            fill="#FFC300"
+            fill="#E99514"
           />
         </g>
       </svg>
@@ -87,7 +87,7 @@
     opacity: 1;
   }
 
-  /* Dim state 50% for all — same opacity swing so each quarter reads as strongly as the others. */
+  /* Dim: red/blue 50%; green/yellow 40% for a stronger pulse on the warmer pair. */
   @keyframes upload-pixel-red {
     0%,
     2% {
@@ -136,10 +136,10 @@
   @keyframes upload-pixel-green {
     0%,
     50% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     53% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     58% {
       opacity: 1;
@@ -149,21 +149,21 @@
       opacity: 1;
     }
     74% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     75%,
     100% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
   }
 
   @keyframes upload-pixel-yellow {
     0%,
     75% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     78% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     83% {
       opacity: 1;
@@ -173,10 +173,10 @@
       opacity: 1;
     }
     99% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
     100% {
-      opacity: 0.5;
+      opacity: 0.4;
     }
   }
 
@@ -205,12 +205,12 @@
 
     .upload-zone-panel:hover .upload-zone-pixel--green {
       animation: none;
-      opacity: 0.6;
+      opacity: 0.4;
     }
 
     .upload-zone-panel:hover .upload-zone-pixel--yellow {
       animation: none;
-      opacity: 0.6;
+      opacity: 0.4;
     }
   }
 </style>
