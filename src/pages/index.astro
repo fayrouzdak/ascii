@@ -6,13 +6,13 @@ import UploadZone from '../components/UploadZone.astro';
 
 <Layout title="ASCII">
   <div
-    class="max-md:flex max-md:min-h-0 max-md:w-[950px] max-md:max-w-[min(950px,100vw)] max-md:flex-col max-md:items-center max-md:justify-center max-md:gap-[18px] max-md:px-5 max-md:h-auto max-md:max-h-none md:relative md:block md:h-[100dvh] md:min-h-0 md:w-full md:max-w-none md:gap-0 md:overflow-hidden md:px-0"
+    class="max-md:flex max-md:min-h-[100dvh] max-md:w-full max-md:max-w-[min(950px,100vw)] max-md:flex-col max-md:items-stretch max-md:self-stretch max-md:justify-start max-md:gap-0 max-md:p-0 max-md:max-h-none md:relative md:block md:h-[100dvh] md:min-h-0 md:w-full md:max-w-none md:gap-0 md:overflow-hidden md:px-0"
   >
     <section
-      class="relative flex min-h-0 min-w-0 flex-col items-center self-stretch max-md:w-full max-md:flex-none md:absolute md:inset-0 md:h-full md:w-full"
+      class="relative flex min-h-0 min-w-0 flex-col items-center self-stretch max-md:w-full max-md:flex-1 max-md:flex-col max-md:min-h-0 md:absolute md:inset-0 md:h-full md:w-full"
     >
       <div
-        class="flex min-h-0 w-full min-w-0 max-md:aspect-square max-md:w-full flex-col items-stretch justify-center md:min-h-0 md:flex-1"
+        class="flex min-h-0 w-full min-w-0 flex-col items-stretch justify-center max-md:flex-1 max-md:flex-col max-md:min-h-0 max-md:justify-start md:min-h-0 md:flex-1"
       >
         <AsciiCanvas>
           <UploadZone />

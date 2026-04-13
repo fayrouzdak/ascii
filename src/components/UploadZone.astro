@@ -3,14 +3,15 @@
 
 <div
   id="upload-zone"
-  class="absolute inset-0 z-40 flex cursor-default flex-col items-center justify-center transition-all duration-300"
-  role="button"
-  tabindex="0"
-  aria-label="Upload image or video"
+  class="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center transition-all duration-300 max-md:px-4"
 >
-  <!-- Dashed border overlay -->
+  <!-- Hit target and visuals: same box (no full-screen invisible capture) -->
   <div
-    class="upload-zone-panel group relative border border-white/5 rounded-none p-10 sm:p-16 flex h-full w-full flex-col items-center justify-center gap-4 bg-[#141314] transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)]"
+    id="upload-zone-panel"
+    class="upload-zone-panel group pointer-events-auto relative flex h-full w-full cursor-default flex-col items-center justify-center gap-4 rounded-none border border-white/5 bg-[#141314] p-10 transition-colors duration-300 hover:bg-[color-mix(in_srgb,white_1%,#141314)] sm:p-16 max-md:mx-auto max-md:h-auto max-md:max-h-full max-md:max-w-full max-md:shrink-0 max-md:aspect-square max-md:w-full"
+    role="button"
+    tabindex="0"
+    aria-label="Upload image or video"
   >
     <div
       id="upload-zone-icon-drag"
@@ -232,7 +233,7 @@
 
   function initUploadZoneIconDrag() {
     const handleEl = document.getElementById('upload-zone-icon-drag');
-    const panelEl = document.querySelector('.upload-zone-panel');
+    const panelEl = document.getElementById('upload-zone-panel');
     if (!(handleEl instanceof HTMLElement) || !(panelEl instanceof HTMLElement)) return;
     const drag = handleEl;
     const zone = panelEl;

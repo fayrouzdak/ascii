@@ -20,8 +20,9 @@ const asciiColorSwatchBtnClass =
 <div
   id="controls"
   class:list={[
-    'pointer-events-auto fixed z-[36] hidden flex min-h-0 max-w-[min(430px,calc(100vw-24px))] flex-col border border-white/5 bg-[#171617] text-white shadow-[0_8px_40px_rgba(0,0,0,0.45)]',
-    'max-h-[min(560px,calc(100dvh-24px))]',
+    'pointer-events-auto z-[36] hidden flex min-h-0 w-full min-w-0 max-w-[min(430px,calc(100vw-24px))] flex-col border border-white/5 bg-[#171617] text-white shadow-[0_8px_40px_rgba(0,0,0,0.45)]',
+    'max-md:relative max-md:z-auto max-md:flex-none max-md:min-h-0 max-md:max-h-[min(36dvh,300px)] max-md:max-w-none max-md:overflow-hidden max-md:rounded-none max-md:border-0 max-md:shadow-none',
+    'md:fixed md:max-h-[min(560px,calc(100dvh-24px))]',
     className,
   ]}
 >

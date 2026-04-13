@@ -3,24 +3,33 @@ import Controls from './Controls.astro';
 ---
 
 <div
-  class="relative mx-auto flex h-full min-h-0 w-full min-w-0 max-h-[550px] max-w-[min(550px,calc(100%-40px))] flex-1 overflow-hidden transition-colors"
+  class="relative mx-auto flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden transition-colors max-md:max-h-none max-md:min-h-0 max-md:w-full md:max-h-[550px] md:max-w-[min(550px,calc(100%-40px))] md:flex-row"
   id="canvas-container"
 >
-  <pre
-    id="ascii-pre"
-    class="relative min-h-0 min-w-0 flex-1 m-0 p-0 overflow-hidden cursor-text select-text outline-none"
-    aria-label="ASCII output"
-  ><code
-      id="ascii-code"
-      class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-pre text-left normal-case tracking-normal"
-    ></code></pre>
-  <!-- Upload zone is layered on top, hidden after image load -->
-  <slot />
-  <Controls />
   <div
-    id="controls-footer"
-    class="pointer-events-auto z-[35] hidden flex w-fit shrink-0 flex-wrap items-center gap-x-4 gap-y-2 bg-[#171617] p-[12px] text-white fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-[max(12px,env(safe-area-inset-left))] right-auto top-auto max-w-[min(430px,calc(100vw-24px))] border border-white/5"
+    id="ascii-stack"
+    class="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden max-md:min-h-0 max-md:[container-type:size]"
   >
+    <pre
+      id="ascii-pre"
+      class="relative m-0 min-h-0 min-w-0 flex-1 cursor-text select-text overflow-hidden p-0 outline-none max-md:p-4"
+      aria-label="ASCII output"
+    ><code
+        id="ascii-code"
+        class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-pre text-left normal-case tracking-normal"
+      ></code></pre>
+    <!-- Upload zone is layered on the canvas only, hidden after image load -->
+    <slot />
+  </div>
+  <div
+    id="controls-dock"
+    class="contents max-md:flex max-md:shrink-0 max-md:relative max-md:z-[35] max-md:w-full max-md:flex-col max-md:items-stretch max-md:overflow-hidden max-md:divide-y max-md:divide-white/5 max-md:border-t max-md:border-white/5 max-md:bg-[#171617]"
+  >
+    <Controls />
+    <div
+      id="controls-footer"
+      class="pointer-events-auto z-[35] hidden w-fit max-w-none shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2 border border-white/5 bg-[#171617] p-[12px] text-white max-md:relative max-md:w-full max-md:max-w-none max-md:flex-nowrap max-md:justify-between max-md:gap-x-0 max-md:gap-y-0 max-md:rounded-none max-md:border-0 max-md:px-4 max-md:pt-3 max-md:pb-[max(12px,env(safe-area-inset-bottom,0px))] md:fixed md:bottom-[max(12px,env(safe-area-inset-bottom))] md:left-[max(12px,env(safe-area-inset-left))] md:right-auto md:top-auto md:max-w-[min(430px,calc(100vw-24px))]"
+    >
     <button
       type="button"
       id="controls-menu-btn"
@@ -124,11 +133,13 @@ import Controls from './Controls.astro';
         </svg>
       </button>
     </div>
+    </div>
   </div>
 </div>
 
 <script>
   import { analyzeImage, layoutAnalysis, type ImageSource, type AsciiAnalysis } from '../lib/ascii-converter';
+  import { clearMetricsCache } from '../lib/font-metrics';
   import { AsciiTextRenderer } from '../lib/renderer';
   import {
     defaultConversionOptions,
@@ -151,9 +162,11 @@ import Controls from './Controls.astro';
   const VIDEO_EXPORT_FPS = 12;
 
   const container = document.getElementById('canvas-container') as HTMLDivElement;
+  const asciiStack = document.getElementById('ascii-stack') as HTMLDivElement | null;
   const asciiPre = document.getElementById('ascii-pre') as HTMLPreElement;
   const asciiCode = document.getElementById('ascii-code') as HTMLElement;
   const uploadZone = document.getElementById('upload-zone') as HTMLDivElement;
+  const uploadZonePanel = document.getElementById('upload-zone-panel') as HTMLDivElement | null;
   const fileInput = document.getElementById('file-input') as HTMLInputElement;
   const newImageBtn = document.getElementById('new-image-btn') as HTMLButtonElement;
   const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
@@ -213,6 +226,7 @@ import Controls from './Controls.astro';
   const styleSelectDropdown = document.getElementById('style-select-dropdown') as HTMLDivElement | null;
   const styleSelectCurrent = document.getElementById('style-select-current') as HTMLSpanElement | null;
   const controlsScroll = document.getElementById('controls-scroll') as HTMLElement | null;
+  const controlsDock = document.getElementById('controls-dock') as HTMLDivElement | null;
   const controlsFooter = document.getElementById('controls-footer') as HTMLDivElement | null;
   const controlsRoot = document.getElementById('controls') as HTMLElement | null;
   const controlsMenuBtn = document.getElementById('controls-menu-btn') as HTMLButtonElement | null;
@@ -275,6 +289,10 @@ import Controls from './Controls.astro';
   function positionControlsPanel(): void {
     if (!controlsRoot || !controlsFooter) return;
     if (controlsRoot.classList.contains('hidden')) return;
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      clearControlsPanelPosition();
+      return;
+    }
 
     const margin = 12;
     const gap = 8;
@@ -385,6 +403,12 @@ import Controls from './Controls.astro';
       controlsMenuOpen = true;
     }
     syncControlsPanel();
+    requestAnimationFrame(() => resizeCanvas());
+  }
+
+  /** Legacy hook: mobile uses in-flow controls (no bottom padding reserve). */
+  function syncMobileFooterReserve(): void {
+    asciiStack?.style.removeProperty('--mobile-footer-reserve');
   }
 
   let cachedAnalysis: AsciiAnalysis | null = null;
@@ -596,6 +620,7 @@ import Controls from './Controls.astro';
   }
 
   function resizeCanvas() {
+    syncMobileFooterReserve();
     if (currentSource) rebuildGrid();
     if (controlsMenuOpen) {
       positionControlsPanel();
@@ -622,8 +647,8 @@ import Controls from './Controls.astro';
 
     const { lines, grid, singleTintColor, htmlLines } = layoutAnalysis(
       cachedAnalysis,
-      container.clientWidth,
-      container.clientHeight,
+      asciiPre.clientWidth,
+      asciiPre.clientHeight,
       conv,
     );
     renderer.load({ lines, grid, singleTintColor, htmlLines });
@@ -633,15 +658,11 @@ import Controls from './Controls.astro';
   resizeObserver.observe(container);
   resizeCanvas();
 
-  if (controlsFooter) {
-    const footerResizeObserver = new ResizeObserver(() => {
-      if (saveMenuBtn?.getAttribute('aria-expanded') === 'true') {
-        positionSaveMenu();
-        requestAnimationFrame(() => positionSaveMenu());
-      }
-    });
-    footerResizeObserver.observe(controlsFooter);
-  }
+  const footerResizeObserver = new ResizeObserver(() => {
+    resizeCanvas();
+  });
+  if (controlsDock) footerResizeObserver.observe(controlsDock);
+  if (controlsFooter) footerResizeObserver.observe(controlsFooter);
 
   const WEBP_HEAD_BYTES = 256 * 1024;
 
@@ -742,8 +763,9 @@ import Controls from './Controls.astro';
     img.src = url;
   }
 
-  uploadZone.addEventListener('click', () => fileInput.click());
-  uploadZone.addEventListener('keydown', (e) => {
+  const uploadTarget = uploadZonePanel ?? uploadZone;
+  uploadTarget.addEventListener('click', () => fileInput.click());
+  uploadTarget.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') fileInput.click();
   });
 
@@ -752,18 +774,18 @@ import Controls from './Controls.astro';
     if (file) loadImage(file);
   });
 
-  uploadZone.addEventListener('dragover', (e) => {
+  uploadTarget.addEventListener('dragover', (e) => {
     e.preventDefault();
-    uploadZone.classList.add('opacity-80');
+    uploadTarget.classList.add('opacity-80');
   });
 
-  uploadZone.addEventListener('dragleave', () => {
-    uploadZone.classList.remove('opacity-80');
+  uploadTarget.addEventListener('dragleave', () => {
+    uploadTarget.classList.remove('opacity-80');
   });
 
-  uploadZone.addEventListener('drop', (e) => {
+  uploadTarget.addEventListener('drop', (e) => {
     e.preventDefault();
-    uploadZone.classList.remove('opacity-80');
+    uploadTarget.classList.remove('opacity-80');
     const file = e.dataTransfer?.files[0];
     if (file && (file.type.startsWith('image/') || file.type.startsWith('video/'))) loadImage(file);
   });
@@ -1078,6 +1100,7 @@ import Controls from './Controls.astro';
   syncControlsPanel();
 
   document.fonts.ready.then(() => {
+    clearMetricsCache();
     if (currentSource) {
       cachedAnalysis = null;
       cachedAnalysisKey = '';
