@@ -250,7 +250,7 @@ import Controls from './Controls.astro';
     if (value.startsWith(SHADED_PREFIX)) {
       return {
         charMode: 'shaded',
-        tonePalette: value.slice(SHADED_PREFIX.length) as TonePalette,
+        tonePalette: 'fine-detail',
       };
     }
     return {

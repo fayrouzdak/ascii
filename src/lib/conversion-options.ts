@@ -9,15 +9,12 @@ export type CharMode =
   /** Letter X where visible */
   | 'cross'
   /** Dot dither */
-  | 'dots';
+  | 'dots'
+  /** Stable 0/1 with per-cell brightness tinting */
+  | 'binary';
 
 /** Character ramp used only when {@link CharMode} is `shaded` */
-export type TonePalette =
-  | 'fine-detail'
-  | 'block-shades'
-  | 'binary'
-  | 'dos-glyphs'
-  | 'math';
+export type TonePalette = 'fine-detail';
 
 export interface ConversionOptions {
   /** Characters wide (grid columns), 1–100 */

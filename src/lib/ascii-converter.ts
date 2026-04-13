@@ -8,11 +8,17 @@ import { measureCharWidthRatio, getLineHeightMult, getFontAspect } from './font-
 const GRADIENT_LEVELS = 16;
 
 const RANDOM_CHARS = '!@#$%&*+=?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const BINARY_CHARS = '01';
 
 /** Stable glyph per cell so animated sources (e.g. GIF) do not flicker on each resample. */
 function stableRandomChar(col: number, row: number): string {
   const h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663) ^ Math.imul(col * row, 83492791)) >>> 0;
   return RANDOM_CHARS[h % RANDOM_CHARS.length]!;
+}
+
+function stableBinaryChar(col: number, row: number): string {
+  const h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663) ^ Math.imul(col * row, 83492791)) >>> 0;
+  return BINARY_CHARS[h % BINARY_CHARS.length]!;
 }
 
 function escapeHtml(s: string): string {
@@ -211,6 +217,8 @@ export function layoutAnalysis(
         ch = ' ';
       } else if (charMode === 'cross') {
         ch = 'x';
+      } else if (charMode === 'binary') {
+        ch = stableBinaryChar(col, row);
       } else {
         ch = stableRandomChar(col, row);
       }

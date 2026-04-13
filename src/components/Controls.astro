@@ -159,11 +159,8 @@ const asciiColorSwatchBtnClass =
         <label for="style-select-trigger" class="min-w-0 flex-1 text-white/70">Style preset</label>
         <div id="style-select-dropdown" class="relative min-w-0 flex-1">
           <select id="style-select" class="hidden" tabindex="-1" aria-hidden="true">
-            <option value="shaded:fine-detail" selected>Fine detail</option>
-            <option value="shaded:block-shades">Block shades</option>
-            <option value="shaded:binary">Binary</option>
-            <option value="shaded:dos-glyphs">DOS &amp; box</option>
-            <option value="shaded:math">Math &amp; science</option>
+            <option value="shaded:fine-detail" selected>Detail</option>
+            <option value="binary">Binary</option>
             <option value="random">Random</option>
             <option value="cross">Crosses</option>
             <option value="dots">Dots</option>
@@ -177,7 +174,7 @@ const asciiColorSwatchBtnClass =
             aria-haspopup="listbox"
             aria-controls="style-select-menu"
           >
-            <span id="style-select-current" class="min-w-0 truncate leading-none uppercase">Fine detail</span>
+            <span id="style-select-current" class="min-w-0 truncate leading-none uppercase">Detail</span>
             <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0 text-white/40" aria-hidden="true">
               <path d="M13 16h-2v-2h2v2Zm-2-2H9v-2h2v2Zm4 0h-2v-2h2v2Zm-6-2H7v-2h2v2Zm8 0h-2v-2h2v2ZM7 10H5V8h2v2Zm12 0h-2V8h2v2Z" />
             </svg>
@@ -188,11 +185,8 @@ const asciiColorSwatchBtnClass =
             class="fixed z-[100] hidden border border-white/5 bg-[#171617] font-normal uppercase [font-variant:normal]"
             aria-label="Character style preset"
           >
-            <button type="button" role="option" data-value="shaded:fine-detail" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Fine detail</button>
-            <button type="button" role="option" data-value="shaded:block-shades" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Block shades</button>
-            <button type="button" role="option" data-value="shaded:binary" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Binary</button>
-            <button type="button" role="option" data-value="shaded:dos-glyphs" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">DOS &amp; box</button>
-            <button type="button" role="option" data-value="shaded:math" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Math &amp; science</button>
+            <button type="button" role="option" data-value="shaded:fine-detail" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Detail</button>
+            <button type="button" role="option" data-value="binary" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Binary</button>
             <button type="button" role="option" data-value="random" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Random</button>
             <button type="button" role="option" data-value="cross" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Crosses</button>
             <button type="button" role="option" data-value="dots" class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/80 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white">Dots</button>

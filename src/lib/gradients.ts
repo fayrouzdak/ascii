@@ -1,14 +1,9 @@
 import type { TonePalette } from './conversion-options';
 
-/** Luminance → character ramps (subset: fine detail, blocks, binary, CP437, math). */
+/** Luminance → character ramp for shaded mode. */
 export const GRADIENT_BY_PALETTE: Record<TonePalette, string> = {
   'fine-detail':
     `$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\\"'^\`'.`,
-  'block-shades': '█▓▒░ ',
-  binary: '01',
-  'dos-glyphs':
-    ' ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■',
-  math: '∫∑∏√∂∞≈≠≤≥±×÷‰∇∆0123456789+-*/^',
 };
 
 /** Ramp used to quantize luminance when char mode is not shaded (same as fine-detail). */
