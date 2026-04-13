@@ -139,7 +139,7 @@ import Controls from './Controls.astro';
 
 <script>
   import { analyzeImage, layoutAnalysis, type ImageSource, type AsciiAnalysis } from '../lib/ascii-converter';
-  import { clearMetricsCache } from '../lib/font-metrics';
+  import { clearMetricsCache, ensureFontLoaded } from '../lib/font-metrics';
   import { AsciiTextRenderer } from '../lib/renderer';
   import {
     defaultConversionOptions,
@@ -714,6 +714,9 @@ import Controls from './Controls.astro';
   async function loadImage(file: File) {
     stopAnimation();
 
+    await ensureFontLoaded();
+    clearMetricsCache();
+
     if (file.type.startsWith('video/')) {
       await loadVideo(file);
       return;
@@ -1099,7 +1102,7 @@ import Controls from './Controls.astro';
   syncLabels();
   syncControlsPanel();
 
-  document.fonts.ready.then(() => {
+  ensureFontLoaded().then(() => {
     clearMetricsCache();
     if (currentSource) {
       cachedAnalysis = null;
