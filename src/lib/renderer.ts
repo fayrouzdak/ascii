@@ -5,6 +5,7 @@ export class AsciiTextRenderer {
   private el: HTMLElement;
   /** Plain grid from the last {@link load}; avoids reading {@link HTMLElement#textContent} after colored HTML, where spacing can differ from the source lines. */
   private plainText = '';
+  private coloredHtmlLines: string[] | null = null;
   displayZoom = 1;
 
   constructor(el: HTMLElement) {
@@ -29,6 +30,7 @@ export class AsciiTextRenderer {
   }) {
     const { lines, grid, singleTintColor, htmlLines } = params;
     this.plainText = lines.join('\n');
+    this.coloredHtmlLines = htmlLines;
     const fz = grid.fontSize * this.displayZoom;
     const lh = fz * getLineHeightMult();
     this.el.style.fontFamily = FONT_FAMILY;
@@ -43,8 +45,13 @@ export class AsciiTextRenderer {
     }
   }
 
+  getHtmlLines(): string[] | null {
+    return this.coloredHtmlLines;
+  }
+
   clear() {
     this.plainText = '';
+    this.coloredHtmlLines = null;
     this.el.textContent = '';
     this.el.style.color = '';
     this.el.style.fontSize = '';

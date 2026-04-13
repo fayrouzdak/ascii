@@ -86,6 +86,92 @@ export function createAsciiExportCanvas(text: string, opts: AsciiExportCanvasOpt
   return off;
 }
 
+export interface AsciiHtmlFrame {
+  /** Pre-built HTML with color <span>s, or null for plain text frames. */
+  html: string;
+  delayMs: number;
+}
+
+export function downloadAsciiHtml(
+  text: string,
+  opts: {
+    pictureForeground: string;
+    backgroundColor: string;
+    htmlLines?: string[] | null;
+    frames?: AsciiHtmlFrame[];
+  },
+): void {
+  const trimmed = text.trimEnd();
+  if (!trimmed) return;
+
+  const staticBody = opts.htmlLines
+    ? opts.htmlLines.join('\n')
+    : escapeXml(trimmed);
+
+  const frames = opts.frames;
+  const animated = frames && frames.length > 1;
+
+  let scriptBlock = '';
+  if (animated) {
+    const encoded = frames.map((f) => ({
+      h: f.html,
+      d: f.delayMs,
+    }));
+    scriptBlock = `
+<script>
+(function(){
+  var F=${JSON.stringify(encoded)};
+  var el=document.getElementById("a");
+  var i=0;
+  function step(){
+    el.innerHTML=F[i].h;
+    var d=F[i].d;
+    i=(i+1)%F.length;
+    setTimeout(step,d);
+  }
+  step();
+})();
+<\/script>`;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASCII Art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: ${opts.backgroundColor};
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: auto;
+  }
+  pre {
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    line-height: 1.15;
+    color: ${opts.pictureForeground};
+    white-space: pre;
+    padding: 2rem;
+  }
+</style>
+</head>
+<body>
+<pre id="a">${staticBody}</pre>${scriptBlock}
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  triggerDownload(URL.createObjectURL(blob), 'ascii-art.html');
+}
+
 export function downloadAsciiPng(text: string, opts: AsciiExportCanvasOpts): void {
   const off = createAsciiExportCanvas(text, opts);
   if (!off) return;

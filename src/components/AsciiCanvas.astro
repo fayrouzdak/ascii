@@ -58,19 +58,6 @@ import Controls from './Controls.astro';
           />
         </svg>
       </button>
-      <button
-        id="save-gif-btn"
-        type="button"
-        aria-label="Save as GIF"
-        class="hidden inline-flex h-8 w-8 shrink-0 items-center justify-center bg-white/5 text-white/60 transition-colors hover:bg-[#FFC300]/10 hover:text-[#FFC300]"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0" aria-hidden="true">
-          <path d="M8 3h8v2H8zm0 4h8v2H8z" />
-          <path
-            d="M8 7h2v6H8zm-5 4h5v2H3zm0 2h2v2H3zm2 2h2v2H5zm2 2h2v2H7zm2 2h2v2H9zm2 2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-4h2v4h-2zm-3 0h3v2h-3zm-2-4h2v6h-2z"
-          />
-        </svg>
-      </button>
       <div id="save-dropdown" class="relative shrink-0">
         <button
           type="button"
@@ -118,6 +105,22 @@ import Controls from './Controls.astro';
           >
             Save as SVG
           </button>
+          <button
+            id="save-html-btn"
+            type="button"
+            role="menuitem"
+            class="w-full break-words px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
+          >
+            Save as HTML
+          </button>
+          <button
+            id="save-gif-menu-btn"
+            type="button"
+            role="menuitem"
+            class="hidden w-full break-words px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
+          >
+            Save as GIF
+          </button>
         </div>
       </div>
       <button
@@ -149,17 +152,24 @@ import Controls from './Controls.astro';
   } from '../lib/conversion-options';
   import {
     createAsciiExportCanvas,
+    downloadAsciiHtml,
+    type AsciiHtmlFrame,
     downloadAsciiPng,
     downloadAsciiText,
     downloadAsciiSvg,
     downloadGifBytes,
     encodeAsciiCanvasesToGif,
   } from '../lib/ascii-export';
+  import { getPageBackgroundColor } from '../lib/page-background';
   import { isAnimatedWebP } from '../lib/animated-webp';
   import { FramePlayer } from '../lib/frame-player';
 
   const MAX_GIF_FRAMES = 200;
   const VIDEO_EXPORT_FPS = 12;
+
+  function escapeHtmlForExport(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
 
   const container = document.getElementById('canvas-container') as HTMLDivElement;
   const asciiStack = document.getElementById('ascii-stack') as HTMLDivElement | null;
@@ -178,8 +188,9 @@ import Controls from './Controls.astro';
   const saveMenu = document.getElementById('save-menu') as HTMLDivElement | null;
   const saveTxtBtn = document.getElementById('save-txt-btn') as HTMLButtonElement;
   const savePngBtn = document.getElementById('save-png-btn') as HTMLButtonElement;
-  const saveGifBtn = document.getElementById('save-gif-btn') as HTMLButtonElement;
+  const saveGifMenuBtn = document.getElementById('save-gif-menu-btn') as HTMLButtonElement;
   const saveSvgBtn = document.getElementById('save-svg-btn') as HTMLButtonElement;
+  const saveHtmlBtn = document.getElementById('save-html-btn') as HTMLButtonElement;
   const ignoreWhiteToggle = document.getElementById('ignore-white-toggle') as HTMLInputElement;
 
   const asciiColor = document.getElementById('ascii-color') as HTMLInputElement;
@@ -425,6 +436,8 @@ import Controls from './Controls.astro';
   let asciiAnimRaf = 0;
   let asciiAnimLastMs = 0;
   let framePlayer: FramePlayer | null = null;
+  /** Set when {@link framePlayer} is active; used to treat GIF vs animated WebP differently in export UI. */
+  let motionRasterMime: string | null = null;
   let videoEl: HTMLVideoElement | null = null;
   let videoObjectUrl: string | null = null;
 
@@ -437,6 +450,7 @@ import Controls from './Controls.astro';
     if (framePlayer) {
       framePlayer.close();
       framePlayer = null;
+      motionRasterMime = null;
     }
     if (videoEl) {
       videoEl.pause();
@@ -483,12 +497,20 @@ import Controls from './Controls.astro';
     asciiAnimRaf = requestAnimationFrame(animationTick);
   }
 
+  function syncSaveTxtVisibility() {
+    const isDetail = styleSelect.value.startsWith(SHADED_PREFIX);
+    const hideForGif = motionRasterMime === 'image/gif';
+    saveTxtBtn.classList.toggle('hidden', !isDetail || hideForGif);
+  }
+
   function updateExportToolbar() {
     const motion = framePlayer !== null || videoEl !== null;
+    const hidePngSvgForGif = motionRasterMime === 'image/gif';
     copyBtn.classList.toggle('!hidden', motion);
-    saveGifBtn.classList.toggle('!hidden', !motion);
-    saveDropdown?.classList.toggle('hidden', motion);
-    if (motion) closeSaveMenu();
+    saveGifMenuBtn.classList.toggle('hidden', !motion);
+    savePngBtn.classList.toggle('hidden', hidePngSvgForGif);
+    saveSvgBtn.classList.toggle('hidden', hidePngSvgForGif);
+    syncSaveTxtVisibility();
   }
 
   function frameIndicesForExport(frameCount: number): number[] {
@@ -738,6 +760,7 @@ import Controls from './Controls.astro';
       const player = await FramePlayer.create(buf, mime);
       if (player) {
         framePlayer = player;
+        motionRasterMime = mime;
         currentSource = {
           drawable: player.getFrame(),
           width: player.width,
@@ -811,10 +834,12 @@ import Controls from './Controls.astro';
   filterInputs.forEach((el) => {
     el.addEventListener('input', () => {
       syncLabels();
+      if (el === styleSelect) syncSaveTxtVisibility();
       if (currentSource) rebuildGrid();
     });
     el.addEventListener('change', () => {
       syncLabels();
+      if (el === styleSelect) syncSaveTxtVisibility();
       if (currentSource) rebuildGrid();
     });
   });
@@ -1009,7 +1034,96 @@ import Controls from './Controls.astro';
     });
   });
 
-  saveGifBtn.addEventListener('click', async () => {
+  saveHtmlBtn.addEventListener('click', async () => {
+    const text = renderer.getText();
+    if (!text.trim()) return;
+    closeSaveMenu();
+    conv = readOptionsFromDom();
+
+    const isMotion = framePlayer !== null || videoEl !== null;
+
+    if (!isMotion) {
+      downloadAsciiHtml(text, {
+        pictureForeground: conv.pictureForeground,
+        backgroundColor: getPageBackgroundColor(),
+        htmlLines: renderer.getHtmlLines(),
+      });
+      return;
+    }
+
+    const prevRaf = asciiAnimRaf;
+    if (prevRaf) {
+      cancelAnimationFrame(prevRaf);
+      asciiAnimRaf = 0;
+    }
+    const wasVideoPlaying = Boolean(videoEl && !videoEl.paused);
+    if (videoEl) videoEl.pause();
+    saveHtmlBtn.disabled = true;
+
+    try {
+      const htmlFrames: AsciiHtmlFrame[] = [];
+
+      if (framePlayer) {
+        const fp = framePlayer;
+        const indices = frameIndicesForExport(fp.frameCount);
+        const delays = delaysForFrameIndices(fp, indices);
+
+        for (let i = 0; i < indices.length; i++) {
+          const idx = indices[i]!;
+          currentSource = { drawable: fp.getFrameAtIndex(idx), width: fp.width, height: fp.height };
+          cachedAnalysis = null;
+          cachedAnalysisKey = '';
+          cachedAnalysisSource = null;
+          rebuildGrid();
+          const frameHtmlLines = renderer.getHtmlLines();
+          const frameText = renderer.getText();
+          htmlFrames.push({
+            html: frameHtmlLines ? frameHtmlLines.join('\n') : escapeHtmlForExport(frameText),
+            delayMs: delays[i]!,
+          });
+        }
+      } else if (videoEl) {
+        const video = videoEl;
+        const duration = video.duration;
+        if (!Number.isFinite(duration) || duration <= 0) return;
+
+        const targetFrames = Math.min(MAX_GIF_FRAMES, Math.max(1, Math.floor(duration * VIDEO_EXPORT_FPS)));
+        const step = duration / targetFrames;
+        const delayMs = Math.max(20, Math.round(step * 1000));
+
+        for (let k = 0; k < targetFrames; k++) {
+          const t = k === targetFrames - 1 ? Math.max(0, duration - 0.04) : k * step;
+          await seekVideo(video, t);
+          currentSource = { drawable: video, width: video.videoWidth, height: video.videoHeight };
+          cachedAnalysis = null;
+          cachedAnalysisKey = '';
+          cachedAnalysisSource = null;
+          rebuildGrid();
+          const frameHtmlLines = renderer.getHtmlLines();
+          const frameText = renderer.getText();
+          htmlFrames.push({
+            html: frameHtmlLines ? frameHtmlLines.join('\n') : escapeHtmlForExport(frameText),
+            delayMs,
+          });
+        }
+      }
+
+      if (htmlFrames.length === 0) return;
+
+      downloadAsciiHtml(renderer.getText(), {
+        pictureForeground: conv.pictureForeground,
+        backgroundColor: getPageBackgroundColor(),
+        htmlLines: renderer.getHtmlLines(),
+        frames: htmlFrames,
+      });
+    } finally {
+      saveHtmlBtn.disabled = false;
+      if (videoEl && wasVideoPlaying) void videoEl.play();
+      startAnimation();
+    }
+  });
+
+  saveGifMenuBtn.addEventListener('click', async () => {
     if (!framePlayer && !videoEl) return;
     closeSaveMenu();
 
@@ -1021,7 +1135,7 @@ import Controls from './Controls.astro';
     const wasVideoPlaying = Boolean(videoEl && !videoEl.paused);
     if (videoEl) videoEl.pause();
 
-    saveGifBtn.disabled = true;
+    saveGifMenuBtn.disabled = true;
 
     try {
       conv = readOptionsFromDom();
@@ -1100,7 +1214,7 @@ import Controls from './Controls.astro';
       const bytes = encodeAsciiCanvasesToGif(frames, pictureForeground, needsBrightness);
       downloadGifBytes(bytes);
     } finally {
-      saveGifBtn.disabled = false;
+      saveGifMenuBtn.disabled = false;
       if (videoEl && wasVideoPlaying) {
         void videoEl.play();
       }
@@ -1121,6 +1235,7 @@ import Controls from './Controls.astro';
   });
 
   syncLabels();
+  syncSaveTxtVisibility();
   syncControlsPanel();
 
   ensureFontLoaded().then(() => {
