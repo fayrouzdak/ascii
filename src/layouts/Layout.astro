@@ -17,7 +17,7 @@ const { title = 'ASCII' } = Astro.props;
     <title>{title}</title>
   </head>
   <body
-    class="box-border flex min-h-screen items-center justify-center overflow-x-hidden overflow-y-auto bg-[#141314] pb-[max(40px,env(safe-area-inset-bottom,0px))] pt-[max(40px,env(safe-area-inset-top,0px))] text-[15px] uppercase text-white"
+    class="box-border min-h-[100dvh] w-full overflow-x-hidden bg-[#141314] text-[15px] uppercase text-white max-md:flex max-md:items-center max-md:justify-center max-md:overflow-y-auto max-md:pb-[max(40px,env(safe-area-inset-bottom,0px))] max-md:pt-[max(40px,env(safe-area-inset-top,0px))] md:m-0 md:overflow-y-hidden md:p-0"
   >
     <slot />
   </body>

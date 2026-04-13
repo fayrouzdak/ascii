@@ -80,6 +80,19 @@ export class FramePlayer {
     return this.frames[this.frames.length - 1]!.image;
   }
 
+  get frameCount(): number {
+    return this.frames.length;
+  }
+
+  frameDurationMs(index: number): number {
+    return this.frames[index]?.durationMs ?? 100;
+  }
+
+  /** Bitmap for a decoded frame index (for export; same references as playback). */
+  getFrameAtIndex(index: number): ImageBitmap {
+    return this.frames[Math.max(0, Math.min(this.frames.length - 1, index))]!.image;
+  }
+
   close() {
     for (const f of this.frames) f.image.close();
     this.frames = [];

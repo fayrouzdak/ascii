@@ -20,13 +20,14 @@ const asciiColorSwatchBtnClass =
 <div
   id="controls"
   class:list={[
-    'flex min-h-0 w-full shrink-0 flex-col bg-[#171617] text-white max-md:h-auto md:h-full md:w-[min(100%,430px)]',
+    'pointer-events-auto fixed z-[36] hidden flex min-h-0 max-w-[min(430px,calc(100vw-24px))] flex-col border border-white/5 bg-[#171617] text-white shadow-[0_8px_40px_rgba(0,0,0,0.45)]',
+    'max-h-[min(560px,calc(100dvh-24px))]',
     className,
   ]}
 >
   <div
     id="controls-scroll"
-    class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-visible p-[12px] text-[15px] md:overflow-y-auto"
+    class="hidden flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-visible p-[12px] text-[15px]"
   >
     <!-- Blur / sharpen -->
     <section class="flex flex-col gap-y-2">
@@ -129,24 +130,6 @@ const asciiColorSwatchBtnClass =
               class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
               aria-hidden="true"
             >9</span>
-          </div>
-        </div>
-        <div class="flex min-w-0 items-center gap-1.5">
-          <label for="size-depth-slider" class="min-w-0 flex-1 text-white/70 uppercase">Size &amp; depth</label>
-          <div class="relative flex min-h-[20px] min-w-0 flex-1 items-center">
-            <input
-              type="range"
-              id="size-depth-slider"
-              min="0"
-              max="100"
-              value="0"
-              class="range-bar relative z-[1] min-w-0 w-full cursor-default"
-            />
-            <span
-              id="size-depth-val"
-              class="pointer-events-none absolute left-1.5 top-1/2 z-[2] -translate-y-1/2 text-[14px] leading-none tracking-wide text-white tabular-nums"
-              aria-hidden="true"
-            >0</span>
           </div>
         </div>
         <label class="flex min-w-0 cursor-default select-none items-center gap-1.5" for="ignore-white-toggle">
@@ -311,76 +294,5 @@ const asciiColorSwatchBtnClass =
         </label>
       </div>
     </section>
-  </div>
-
-  <div class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/5 p-[12px]">
-    <button
-      id="new-image-btn"
-      type="button"
-      aria-label="New Image"
-      class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#FF0004]/10 hover:text-[#FF0004]"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4" aria-hidden="true">
-        <path
-          d="M20 19H8v-2h12v2ZM8 17H6v-2h2v2Zm14 0h-2V7h2v10ZM6 15H4v-2h2v2Zm8 0h-2v-2h2v2Zm4 0h-2v-2h2v2ZM4 13H2v-2h2v2Zm12 0h-2v-2h2v2ZM6 11H4V9h2v2Zm8 0h-2V9h2v2Zm4 0h-2V9h2v2ZM8 9H6V7h2v2Zm12-2H8V5h12v2Z"
-        />
-      </svg>
-    </button>
-
-    <div class="ml-auto flex shrink-0 items-center gap-2.5">
-      <button
-        id="copy-btn"
-        type="button"
-        aria-label="Copy"
-        class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#2A63FF]/10 hover:text-[#2A63FF]"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4" aria-hidden="true">
-          <path
-            d="M20 22H8v-2h12v2ZM8 20H6v-2H4v-2h2V8h2v12Zm14 0h-2V8h2v12ZM4 16H2V4h2v12ZM18 6h2v2H8V6h8V4h2v2Zm-2-2H4V2h12v2Z"
-          />
-        </svg>
-      </button>
-      <div id="save-dropdown" class="relative shrink-0">
-        <button
-          type="button"
-          id="save-menu-btn"
-          aria-label="Save"
-          aria-expanded="false"
-          aria-haspopup="true"
-          aria-controls="save-menu"
-          class="inline-flex items-center justify-center bg-white/5 p-1.5 text-white/60 transition-colors hover:bg-[#FFC300]/10 hover:text-[#FFC300]"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="size-4 shrink-0" aria-hidden="true">
-            <path d="M8 3h8v2H8zm0 4h8v2H8z" />
-            <path
-              d="M8 7h2v6H8zm-5 4h5v2H3zm0 2h2v2H3zm2 2h2v2H5zm2 2h2v2H7zm2 2h2v2H9zm2 2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-4h2v4h-2zm-3 0h3v2h-3zm-2-4h2v6h-2z"
-            />
-          </svg>
-        </button>
-        <div
-          id="save-menu"
-          role="menu"
-          aria-labelledby="save-menu-btn"
-          class="absolute right-0 top-full z-50 mt-[8px] hidden min-w-[7.5rem] flex-col border border-white/5 bg-[#171617] text-white"
-        >
-          <button
-            id="save-txt-btn"
-            type="button"
-            role="menuitem"
-            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
-          >
-            Save as TXT
-          </button>
-          <button
-            id="save-png-btn"
-            type="button"
-            role="menuitem"
-            class="w-full px-[12px] py-1.5 text-left text-[15px] font-normal uppercase text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.02)] hover:text-white"
-          >
-            Save as PNG
-          </button>
-        </div>
-      </div>
-    </div>
   </div>
 </div>

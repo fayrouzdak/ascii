@@ -3,10 +3,10 @@
 
 <div
   id="upload-zone"
-  class="absolute inset-0 flex flex-col items-center justify-center z-10 cursor-default transition-all duration-300"
+  class="absolute inset-0 z-40 flex cursor-default flex-col items-center justify-center transition-all duration-300"
   role="button"
   tabindex="0"
-  aria-label="Upload image"
+  aria-label="Upload image or video"
 >
   <!-- Dashed border overlay -->
   <div
@@ -71,9 +71,9 @@
   <input
     type="file"
     id="file-input"
-    accept="image/*"
+    accept="image/*,video/*"
     class="hidden"
-    aria-label="Upload image file"
+    aria-label="Upload image or video file"
   />
 </div>
 

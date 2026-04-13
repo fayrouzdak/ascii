@@ -2,20 +2,22 @@
 import Layout from '../layouts/Layout.astro';
 import AsciiCanvas from '../components/AsciiCanvas.astro';
 import UploadZone from '../components/UploadZone.astro';
-import Controls from '../components/Controls.astro';
 ---
 
 <Layout title="ASCII">
   <div
-    class="flex min-h-0 w-[950px] max-w-[min(950px,100vw)] flex-col items-center justify-center gap-[18px] px-5 max-md:h-auto max-md:max-h-none md:h-[min(600px,calc(100dvh_-_var(--layout-pad-y)))] md:min-h-0 lg:px-0 md:flex-row"
+    class="max-md:flex max-md:min-h-0 max-md:w-[950px] max-md:max-w-[min(950px,100vw)] max-md:flex-col max-md:items-center max-md:justify-center max-md:gap-[18px] max-md:px-5 max-md:h-auto max-md:max-h-none md:relative md:block md:h-[100dvh] md:min-h-0 md:w-full md:max-w-none md:gap-0 md:overflow-hidden md:px-0"
   >
     <section
-      class="flex min-h-0 min-w-0 flex-col self-stretch max-md:aspect-square max-md:w-full max-md:flex-none md:min-h-0 md:flex-1"
+      class="relative flex min-h-0 min-w-0 flex-col items-center self-stretch max-md:w-full max-md:flex-none md:absolute md:inset-0 md:h-full md:w-full"
     >
-      <AsciiCanvas>
-        <UploadZone />
-      </AsciiCanvas>
+      <div
+        class="flex min-h-0 w-full min-w-0 max-md:aspect-square max-md:w-full flex-col items-stretch justify-center md:min-h-0 md:flex-1"
+      >
+        <AsciiCanvas>
+          <UploadZone />
+        </AsciiCanvas>
+      </div>
     </section>
-    <Controls class="self-stretch" />
   </div>
 </Layout>

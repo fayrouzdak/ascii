@@ -1,10 +1,10 @@
-import type { AsciiCell, GridConfig } from './types';
+import type { GridConfig } from './types';
 import type { ConversionOptions } from './conversion-options';
 import { contrastFactorFromCentered, adjustPixel, luminance, clamp, sharpenLuminance } from './pixel-pipeline';
 import { applyDither } from './pixel-pipeline';
 import { buildLevelsFromGradient, getGradientString, DEFAULT_QUANTIZE_PALETTE } from './gradients';
+import { measureCharWidthRatio, getLineHeightMult, getFontAspect } from './font-metrics';
 
-const FONT_ASPECT = 0.55;
 const GRADIENT_LEVELS = 16;
 
 const RANDOM_CHARS = '!@#$%&*+=?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -13,6 +13,30 @@ const RANDOM_CHARS = '!@#$%&*+=?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV
 function stableRandomChar(col: number, row: number): string {
   const h = (Math.imul(col, 73856093) ^ Math.imul(row, 19349663) ^ Math.imul(col * row, 83492791)) >>> 0;
   return RANDOM_CHARS[h % RANDOM_CHARS.length]!;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Groups consecutive same-colored characters into spans for a single grid row. */
+function rowToColoredHtml(chars: string[], colors: string[]): string {
+  if (chars.length === 0) return '';
+  if (chars.length !== colors.length) return escapeHtml(chars.join(''));
+  let out = '';
+  let i = 0;
+  while (i < chars.length) {
+    const color = colors[i]!;
+    let chunk = '';
+    let j = i;
+    while (j < chars.length && colors[j] === color) {
+      chunk += chars[j]!;
+      j++;
+    }
+    out += `<span style="color:${color}">${escapeHtml(chunk)}</span>`;
+    i = j;
+  }
+  return out;
 }
 
 /** Scale hex foreground by brightness for non-shaded char modes */
@@ -46,42 +70,37 @@ export interface ImageSource {
   height: number;
 }
 
-export function convertImageToAscii(
+/**
+ * Cached result of the expensive image-analysis pass.
+ * Independent of canvas dimensions — only depends on the source image
+ * and processing options (brightness, contrast, palette, etc.).
+ */
+export interface AsciiAnalysis {
+  cols: number;
+  rows: number;
+  charGrid: string[][];
+  gray: Float32Array;
+  grayOriginal: Float32Array;
+}
+
+/**
+ * Expensive pass: sample the image at grid resolution, process pixels,
+ * dither, and build the character grid. Result can be reused across
+ * viewport resizes because it does not depend on viewport dimensions.
+ */
+export function analyzeImage(
   src: ImageSource,
-  canvasWidth: number,
-  canvasHeight: number,
   options: ConversionOptions,
-): { cells: AsciiCell[]; grid: GridConfig } {
+): AsciiAnalysis {
   const paletteForRamp =
     options.charMode === 'shaded' ? options.tonePalette : DEFAULT_QUANTIZE_PALETTE;
   const gradientRaw = getGradientString(paletteForRamp);
   const ramp = buildLevelsFromGradient(gradientRaw, GRADIENT_LEVELS);
   const nLevels = ramp.length;
 
+  const fontAspect = getFontAspect();
   const cols = Math.max(1, Math.min(100, options.outputCols));
-  const rows = Math.max(8, Math.round((src.height / src.width) * cols * FONT_ASPECT));
-
-  const gap = 0;
-  const totalGapW = gap * Math.max(0, cols - 1);
-  let cellWidth = (canvasWidth - totalGapW) / cols;
-  let fontSize = cellWidth / 0.6;
-  let cellHeight = fontSize * 1.1;
-
-  if (rows * cellHeight > canvasHeight) {
-    const s = canvasHeight / (rows * cellHeight);
-    fontSize *= s;
-    cellHeight *= s;
-    cellWidth = fontSize * 0.6;
-  }
-
-  const gridWidth = cols * cellWidth + totalGapW;
-  const gridHeight = rows * cellHeight;
-  const offsetX = (canvasWidth - gridWidth) / 2;
-  const offsetY = (canvasHeight - gridHeight) / 2;
-  const anchorX = offsetX + gridWidth / 2;
-  const anchorY = offsetY + gridHeight / 2;
-
-  const grid: GridConfig = { cols, rows, cellWidth, cellHeight, fontSize, anchorX, anchorY };
+  const rows = Math.max(8, Math.round((src.height / src.width) * cols * fontAspect));
 
   const offscreen = document.createElement('canvas');
   offscreen.width = cols;
@@ -118,7 +137,6 @@ export function convertImageToAscii(
   sharpenLuminance(gray, cols, rows, options.sharpness);
 
   const quantize = (lev: number) => ramp[clamp(lev, 0, nLevels - 1)]!;
-
   const ascii = applyDither(
     new Float32Array(gray),
     cols,
@@ -131,10 +149,47 @@ export function convertImageToAscii(
   );
 
   const charGrid = buildCharGridFromAscii(ascii, cols, rows);
-  const charMode = options.charMode;
+  return { cols, rows, charGrid, gray, grayOriginal };
+}
 
-  const cells: AsciiCell[] = [];
+/**
+ * Cheap pass: fit font size to the view using pretext-measured metrics and
+ * build plain text (plus optional per-character color HTML for non-shaded modes).
+ */
+export function layoutAnalysis(
+  analysis: AsciiAnalysis,
+  viewWidth: number,
+  viewHeight: number,
+  options: ConversionOptions,
+): {
+  lines: string[];
+  grid: GridConfig;
+  singleTintColor: string;
+  htmlLines: string[] | null;
+} {
+  const { cols, rows, charGrid, gray, grayOriginal } = analysis;
+  const charWidthRatio = measureCharWidthRatio();
+  const lineHeightMult = getLineHeightMult();
+
+  let cellWidth = viewWidth / cols;
+  let fontSize = cellWidth / charWidthRatio;
+  let cellHeight = fontSize * lineHeightMult;
+
+  if (rows * cellHeight > viewHeight) {
+    const s = viewHeight / (rows * cellHeight);
+    fontSize *= s;
+  }
+
+  const grid: GridConfig = { cols, rows, fontSize };
+  const charMode = options.charMode;
+  const perCharTint = charMode !== 'shaded';
+  const lines: string[] = [];
+  const htmlLines: string[] | null = perCharTint ? [] : null;
+
   for (let row = 0; row < rows; row++) {
+    const rowChars: string[] = [];
+    const rowColors: string[] = [];
+
     for (let col = 0; col < cols; col++) {
       const idx = row * cols + col;
       const rawLum = grayOriginal[idx]! / 255;
@@ -160,28 +215,44 @@ export function convertImageToAscii(
         ch = stableRandomChar(col, row);
       }
 
-      const targetX = offsetX + col * (cellWidth + gap);
-      const targetY = offsetY + row * cellHeight + cellHeight;
       const cellIsVisible = charMode === 'dots' ? isVisibleDots : isVisible;
       let color = options.pictureForeground;
       if (charMode !== 'shaded' && cellIsVisible) {
         color = foregroundAtBrightness(options.pictureForeground, brightness);
       }
 
-      cells.push({
-        char: ch,
-        col,
-        row,
-        targetX,
-        targetY,
-        brightness,
-        opacity: 1,
-        color,
-      });
+      rowChars.push(ch);
+      if (perCharTint) {
+        rowColors.push(color);
+      }
+    }
+
+    lines.push(rowChars.join('').replace(/\s+$/u, ''));
+    if (htmlLines) {
+      htmlLines.push(rowToColoredHtml(rowChars, rowColors));
     }
   }
 
-  return { cells, grid };
+  return {
+    lines,
+    grid,
+    singleTintColor: options.pictureForeground,
+    htmlLines,
+  };
+}
+
+/**
+ * Full pipeline (convenience wrapper). For resize-optimized flows, prefer
+ * calling {@link analyzeImage} once and {@link layoutAnalysis} on each resize.
+ */
+export function convertImageToAscii(
+  src: ImageSource,
+  viewWidth: number,
+  viewHeight: number,
+  options: ConversionOptions,
+) {
+  const analysis = analyzeImage(src, options);
+  return layoutAnalysis(analysis, viewWidth, viewHeight, options);
 }
 
 /** @deprecated use buildLevelsFromGradient via options */

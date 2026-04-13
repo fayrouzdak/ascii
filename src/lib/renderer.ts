@@ -1,28 +1,14 @@
-import type { AsciiCell, GridConfig } from './types';
-import { getPageBackgroundColor } from './page-background';
+import type { GridConfig } from './types';
+import { FONT_FAMILY, getLineHeightMult } from './font-metrics';
 
-export class AsciiRenderer {
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  private cells: AsciiCell[] = [];
-  private grid: GridConfig | null = null;
-  sizeDepth = 0;
+export class AsciiTextRenderer {
+  private el: HTMLElement;
+  /** Plain grid from the last {@link load}; avoids reading {@link HTMLElement#textContent} after colored HTML, where spacing can differ from the source lines. */
+  private plainText = '';
   displayZoom = 1;
 
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d')!;
-  }
-
-  loadCells(cells: AsciiCell[], grid: GridConfig) {
-    this.cells = cells;
-    this.grid = grid;
-    this.redraw();
-  }
-
-  setSizeDepth(depth: number) {
-    this.sizeDepth = depth;
-    this.redraw();
+  constructor(el: HTMLElement) {
+    this.el = el;
   }
 
   /** @param bias −100 (min zoom) … 0 (100% scale) … +100 (max zoom in) */
@@ -35,64 +21,42 @@ export class AsciiRenderer {
     }
   }
 
-  getText(): string {
-    const { cells, grid } = this;
-    if (!grid) return '';
-    const lines: string[] = [];
-    for (let r = 0; r < grid.rows; r++) {
-      let line = '';
-      for (let c = 0; c < grid.cols; c++) {
-        const cell = cells[r * grid.cols + c];
-        line += cell ? cell.char : ' ';
-      }
-      lines.push(line.trimEnd());
+  load(params: {
+    lines: string[];
+    grid: GridConfig;
+    singleTintColor: string;
+    htmlLines: string[] | null;
+  }) {
+    const { lines, grid, singleTintColor, htmlLines } = params;
+    this.plainText = lines.join('\n');
+    const fz = grid.fontSize * this.displayZoom;
+    const lh = fz * getLineHeightMult();
+    this.el.style.fontFamily = FONT_FAMILY;
+    this.el.style.fontSize = `${fz}px`;
+    this.el.style.lineHeight = `${lh}px`;
+    if (htmlLines) {
+      this.el.innerHTML = htmlLines.join('\n');
+      this.el.style.color = '';
+    } else {
+      this.el.textContent = lines.join('\n');
+      this.el.style.color = singleTintColor;
     }
-    return lines.join('\n');
   }
 
-  redraw() {
-    const { canvas, ctx, cells, grid } = this;
-    if (!grid) return;
+  clear() {
+    this.plainText = '';
+    this.el.textContent = '';
+    this.el.style.color = '';
+    this.el.style.fontSize = '';
+    this.el.style.lineHeight = '';
+  }
 
-    ctx.fillStyle = getPageBackgroundColor();
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.textBaseline = 'alphabetic';
-
-    const zx = this.displayZoom;
-    const { anchorX, anchorY } = grid;
-    const cx = canvas.width * 0.5;
-    const cy = canvas.height * 0.5;
-
-    const baseFontSize = grid.fontSize * zx;
-    const baseFont = `${baseFontSize}px 'VT323', monospace`;
-    ctx.font = baseFont;
-    let lastFontSize = baseFontSize;
-
-    for (const cell of cells) {
-      if (cell.char === ' ' || cell.opacity <= 0.01) continue;
-
-      if (this.sizeDepth > 0) {
-        const minScale = 1 - this.sizeDepth * 0.72;
-        const maxScale = 1 + this.sizeDepth * 0.45;
-        const scale = minScale + cell.brightness * (maxScale - minScale);
-        const cellFontSize = Math.max(1, baseFontSize * scale);
-        if (Math.abs(cellFontSize - lastFontSize) > 0.25) {
-          ctx.font = `${cellFontSize.toFixed(1)}px 'VT323', monospace`;
-          lastFontSize = cellFontSize;
-        }
-      } else if (lastFontSize !== baseFontSize) {
-        ctx.font = baseFont;
-        lastFontSize = baseFontSize;
-      }
-
-      ctx.globalAlpha = Math.max(0, Math.min(1, cell.opacity));
-      ctx.fillStyle = cell.color;
-      const tx = cx + zx * (cell.targetX - anchorX);
-      const ty = cy + zx * (cell.targetY - anchorY);
-      ctx.fillText(cell.char, tx, ty);
-    }
-
-    ctx.globalAlpha = 1;
+  getText(): string {
+    const raw = this.plainText;
+    if (!raw) return '';
+    return raw
+      .split('\n')
+      .map((ln) => ln.replace(/\s+$/u, ''))
+      .join('\n');
   }
 }

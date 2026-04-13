@@ -206,8 +206,8 @@ select {
   cursor: default;
 }
 
-/* Prevent canvas context menu on long-press mobile */
-canvas {
+/* Prevent context menu on long-press mobile for the ASCII output */
+#ascii-pre {
   -webkit-touch-callout: none;
-  touch-action: none;
+  touch-action: pan-x pan-y;
 }
