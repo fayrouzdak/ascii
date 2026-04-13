@@ -87,7 +87,7 @@
     opacity: 1;
   }
 
-  /* Dim: red & blue 50%; green & yellow 60%. Eased ramps per quarter-cycle. */
+  /* Dim state 50% for all — same opacity swing so each quarter reads as strongly as the others. */
   @keyframes upload-pixel-red {
     0%,
     2% {
@@ -136,10 +136,10 @@
   @keyframes upload-pixel-green {
     0%,
     50% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     53% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     58% {
       opacity: 1;
@@ -149,21 +149,21 @@
       opacity: 1;
     }
     74% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     75%,
     100% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
   }
 
   @keyframes upload-pixel-yellow {
     0%,
     75% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     78% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     83% {
       opacity: 1;
@@ -173,10 +173,10 @@
       opacity: 1;
     }
     99% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
     100% {
-      opacity: 0.6;
+      opacity: 0.5;
     }
   }
 
